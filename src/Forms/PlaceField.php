@@ -4,16 +4,10 @@ namespace Goldfinch\GoogleFields\Forms;
 
 use InvalidArgumentException;
 use SilverStripe\ORM\ArrayLib;
+use SilverStripe\Forms\FormField;
 use SilverStripe\ORM\FieldType\DBPlace;
 use SilverStripe\ORM\DataObjectInterface;
 
-/**
- * A form field that can save into a {@link Money} database field.
- * See {@link CurrencyField} for a similar implementation
- * that can save into a single float database field without indicating the currency.
- *
- * @author Ingo Schommer, SilverStripe Ltd. (<firstname>@silverstripe.com)
- */
 class PlaceField extends FormField
 {
 
