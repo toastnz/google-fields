@@ -1,3 +1,8 @@
 ---
-Name: goldfinch-google-autocomplete
+Name: goldfinch-google-fields
 ---
+SilverStripe\Core\Injector\Injector:
+  Place:
+    class: Goldfinch\GoogleFields\Forms\ORM\FieldType\DBPlace
+  Map:
+    class: Goldfinch\GoogleFields\Forms\ORM\FieldType\DBMap

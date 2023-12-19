@@ -1,5 +1,5 @@
 {
-    "name": "goldfinch/google-autocomplete",
+    "name": "goldfinch/google-fields",
     "description": "",
     "type": "silverstripe-vendormodule",
     "keywords": [
@@ -16,7 +16,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Goldfinch\\GoogleAutocomplete\\": "src/"
+            "Goldfinch\\GoogleFields\\": "src/"
         }
     },
     "minimum-stability": "dev",
