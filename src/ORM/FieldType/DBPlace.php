@@ -3,10 +3,11 @@
 namespace Goldfinch\GoogleFields\ORM\FieldType;
 
 use NumberFormatter;
-use SilverStripe\Forms\FormField;
-use SilverStripe\Forms\PlaceField;
 use SilverStripe\i18n\i18n;
-SilverStripe\ORM\FieldType\DBComposite;
+use SilverStripe\Forms\FormField;
+use PhpTek\JSONText\ORM\FieldType\JSONText;
+use SilverStripe\ORM\FieldType\DBComposite;
+use Goldfinch\GoogleFields\Forms\PlaceField;
 
 class DBPlace extends DBComposite
 {
@@ -19,27 +20,27 @@ class DBPlace extends DBComposite
      * @var array<string,string>
      */
     private static $composite_db = [
-        'Currency' => 'Varchar(3)',
-        'Amount' => 'Decimal(19,4)'
+        'Address' => 'Varchar(255)',
+        'Data' => JSONText::class
     ];
 
     /**
-     * Get currency formatter
+     * Get address formatter
      *
      * @return NumberFormatter
      */
     public function getFormatter()
     {
         $locale = $this->getLocale();
-        $currency = $this->getCurrency();
-        if ($currency) {
-            $locale .= '@currency=' . $currency;
+        $address = $this->getAddress();
+        if ($address) {
+            $locale .= '@address=' . $address;
         }
         return NumberFormatter::create($locale, NumberFormatter::CURRENCY);
     }
 
     /**
-     * Get nicely formatted currency (based on current locale)
+     * Get nicely formatted address (based on current locale)
      *
      * @return string
      */
@@ -48,17 +49,17 @@ class DBPlace extends DBComposite
         if (!$this->exists()) {
             return null;
         }
-        $amount = $this->getAmount();
-        $currency = $this->getCurrency();
+        $data = $this->getData();
+        $address = $this->getAddress();
 
-        // Without currency, format as basic localised number
+        // Without address, format as basic localised number
         $formatter = $this->getFormatter();
-        if (!$currency) {
-            return $formatter->format($amount);
+        if (!$address) {
+            return $formatter->format($data);
         }
 
-        // Localise currency
-        return $formatter->formatCurrency($amount, $currency);
+        // Localise address
+        return $formatter->formatAddress($data, $address);
     }
 
     /**
@@ -71,53 +72,53 @@ class DBPlace extends DBComposite
         if (!$this->exists()) {
             return null;
         }
-        $amount = $this->getAmount();
-        $currency = $this->getCurrency();
-        if (empty($currency)) {
-            return $amount;
+        $data = $this->getData();
+        $address = $this->getAddress();
+        if (empty($address)) {
+            return $data;
         }
-        return $amount . ' ' . $currency;
+        return $data . ' ' . $address;
     }
 
     /**
      * @return string
      */
-    public function getCurrency()
+    public function getAddress()
     {
-        return $this->getField('Currency');
+        return $this->getField('Address');
     }
 
     /**
-     * @param string $currency
+     * @param string $address
      * @param bool $markChanged
      * @return $this
      */
-    public function setCurrency($currency, $markChanged = true)
+    public function setAddress($address, $markChanged = true)
     {
-        $this->setField('Currency', $currency, $markChanged);
+        $this->setField('Address', $address, $markChanged);
         return $this;
     }
 
     /**
      * @return float
      */
-    public function getAmount()
+    public function getData()
     {
-        return $this->getField('Amount');
+        return $this->getField('Data');
     }
 
     /**
-     * @param mixed $amount
+     * @param mixed $data
      * @param bool $markChanged
      * @return $this
      */
-    public function setAmount($amount, $markChanged = true)
+    public function setData($data, $markChanged = true)
     {
         // Retain nullability to mark this field as empty
-        if (isset($amount)) {
-            $amount = (float)$amount;
+        if (isset($data)) {
+            $data = (float)$data;
         }
-        $this->setField('Amount', $amount, $markChanged);
+        $this->setField('Data', $data, $markChanged);
         return $this;
     }
 
@@ -126,17 +127,17 @@ class DBPlace extends DBComposite
      */
     public function exists()
     {
-        return is_numeric($this->getAmount());
+        return is_numeric($this->getData());
     }
 
     /**
-     * Determine if this has a non-zero amount
+     * Determine if this has a non-zero data
      *
      * @return bool
      */
-    public function hasAmount()
+    public function hasData()
     {
-        $a = $this->getAmount();
+        $a = $this->getData();
         return (!empty($a) && is_numeric($a));
     }
 
@@ -159,7 +160,7 @@ class DBPlace extends DBComposite
     }
 
     /**
-     * Get currency symbol
+     * Get address symbol
      *
      * @return string
      */

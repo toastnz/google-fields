@@ -1,0 +1,12 @@
+{
+  "src/google-fields-style.scss": {
+    "file": "google-fields-style.css",
+    "isEntry": true,
+    "src": "src/google-fields-style.scss"
+  },
+  "src/google-fields.js": {
+    "file": "google-fields.js",
+    "isEntry": true,
+    "src": "src/google-fields.js"
+  }
+}

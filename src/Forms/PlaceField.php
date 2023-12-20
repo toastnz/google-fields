@@ -5,8 +5,10 @@ namespace Goldfinch\GoogleFields\Forms;
 use InvalidArgumentException;
 use SilverStripe\ORM\ArrayLib;
 use SilverStripe\Forms\FormField;
-use SilverStripe\ORM\FieldType\DBPlace;
+use Goldfinch\GoogleFields\ORM\FieldType\DBPlace;
 use SilverStripe\ORM\DataObjectInterface;
+use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\NumericField;
 
 class PlaceField extends FormField
 {
@@ -23,90 +25,90 @@ class PlaceField extends FormField
     /**
      * @var NumericField
      */
-    protected $fieldAmount = null;
+    protected $fieldData = null;
 
     /**
      * @var FormField
      */
-    protected $fieldCurrency = null;
+    protected $fieldAddress = null;
 
     /**
-     * Gets field for the currency selector
+     * Gets field for the address selector
      *
      * @return FormField
      */
-    public function getCurrencyField()
+    public function getAddressField()
     {
-        return $this->fieldCurrency;
+        return $this->fieldAddress;
     }
 
     /**
-     * Gets field for the amount input
+     * Gets field for the data input
      *
      * @return NumericField
      */
-    public function getAmountField()
+    public function getDataField()
     {
-        return $this->fieldAmount;
+        return $this->fieldData;
     }
 
     public function __construct($name, $title = null, $value = "")
     {
         $this->setName($name);
-        $this->fieldAmount = NumericField::create(
-            "{$name}[Amount]",
-            _t('SilverStripe\\Forms\\PlaceField.FIELDLABELAMOUNT', 'Amount')
+        $this->fieldData = NumericField::create(
+            "{$name}[Data]",
+            _t('SilverStripe\\Forms\\PlaceField.FIELDLABELAMOUNT', 'Data')
         )
             ->setScale(2);
-        $this->buildCurrencyField();
+        $this->buildAddressField();
 
         parent::__construct($name, $title, $value);
     }
 
     public function __clone()
     {
-        $this->fieldAmount = clone $this->fieldAmount;
-        $this->fieldCurrency = clone $this->fieldCurrency;
+        $this->fieldData = clone $this->fieldData;
+        $this->fieldAddress = clone $this->fieldAddress;
     }
 
     /**
-     * Builds a new currency field based on the allowed currencies configured
+     * Builds a new address field based on the allowed currencies configured
      *
      * @return FormField
      */
-    protected function buildCurrencyField()
+    protected function buildAddressField()
     {
         $name = $this->getName();
 
         // Validate allowed currencies
-        $currencyValue = $this->fieldCurrency ? $this->fieldCurrency->dataValue() : null;
+        $addressValue = $this->fieldAddress ? $this->fieldAddress->dataValue() : null;
         $allowedCurrencies = $this->getAllowedCurrencies();
         if (count($allowedCurrencies ?? []) === 1) {
-            // Hidden field for single currency
-            $field = HiddenField::create("{$name}[Currency]");
+            // Hidden field for single address
+            $field = HiddenField::create("{$name}[Address]");
             reset($allowedCurrencies);
-            $currencyValue = key($allowedCurrencies ?? []);
+            $addressValue = key($allowedCurrencies ?? []);
         } elseif ($allowedCurrencies) {
             // Dropdown field for multiple currencies
             $field = DropdownField::create(
-                "{$name}[Currency]",
-                _t('SilverStripe\\Forms\\PlaceField.FIELDLABELCURRENCY', 'Currency'),
+                "{$name}[Address]",
+                _t('SilverStripe\\Forms\\PlaceField.FIELDLABELCURRENCY', 'Address'),
                 $allowedCurrencies
             );
         } else {
-            // Free-text entry for currency value
+            // Free-text entry for address value
             $field = TextField::create(
-                "{$name}[Currency]",
-                _t('SilverStripe\\Forms\\PlaceField.FIELDLABELCURRENCY', 'Currency')
+                "{$name}[Address]",
+                _t('SilverStripe\\Forms\\PlaceField.FIELDLABELCURRENCY', 'Address')
             );
         }
 
         $field->setReadonly($this->isReadonly());
         $field->setDisabled($this->isDisabled());
-        if ($currencyValue) {
-            $field->setValue($currencyValue);
+        if ($addressValue) {
+            $field->setValue($addressValue);
         }
-        $this->fieldCurrency = $field;
+        $this->fieldAddress = $field;
         return $field;
     }
 
@@ -114,8 +116,8 @@ class PlaceField extends FormField
     {
         if (empty($value)) {
             $this->value = null;
-            $this->fieldCurrency->setValue(null);
-            $this->fieldAmount->setValue(null);
+            $this->fieldAddress->setValue(null);
+            $this->fieldData->setValue(null);
             return $this;
         }
 
@@ -125,8 +127,8 @@ class PlaceField extends FormField
         }
 
         // Update each field
-        $this->fieldCurrency->setSubmittedValue($value['Currency'], $value);
-        $this->fieldAmount->setSubmittedValue($value['Amount'], $value);
+        $this->fieldAddress->setSubmittedValue($value['Address'], $value);
+        $this->fieldData->setSubmittedValue($value['Data'], $value);
 
         // Get data value
         $this->value = $this->dataValue();
@@ -137,33 +139,35 @@ class PlaceField extends FormField
     {
         if (empty($value)) {
             $this->value = null;
-            $this->fieldCurrency->setValue(null);
-            $this->fieldAmount->setValue(null);
+            $this->fieldAddress->setValue(null);
+            $this->fieldData->setValue(null);
             return $this;
         }
+
+        // dd($value);
 
         // Convert string to array
         // E.g. `44.00 NZD`
         if (is_string($value) &&
-            preg_match('/^(?<amount>[\\d\\.]+)( (?<currency>\w{3}))?$/i', $value ?? '', $matches)
+            preg_match('/^(?<data>[\\d\\.]+)( (?<address>\w{3}))?$/i', $value ?? '', $matches)
         ) {
-            $currency = isset($matches['currency']) ? strtoupper($matches['currency']) : null;
+            $address = isset($matches['address']) ? strtoupper($matches['address']) : null;
             $value = [
-                'Currency' => $currency,
-                'Amount' => (float)$matches['amount'],
+                'Address' => $address,
+                'Data' => (float)$matches['data'],
             ];
         } elseif ($value instanceof DBPlace) {
             $value = [
-                'Currency' => $value->getCurrency(),
-                'Amount' => $value->getAmount(),
+                'Address' => $value->getAddress(),
+                'Data' => $value->getData(),
             ];
         } elseif (!is_array($value)) {
-            throw new InvalidArgumentException("Invalid currency format");
+            throw new InvalidArgumentException("Invalid address format");
         }
 
         // Save value
-        $this->fieldCurrency->setValue($value['Currency'], $value);
-        $this->fieldAmount->setValue($value['Amount'], $value);
+        $this->fieldAddress->setValue($value['Address'], $value);
+        $this->fieldData->setValue($value['Data'], $value);
         $this->value = $this->dataValue();
         return $this;
     }
@@ -176,8 +180,8 @@ class PlaceField extends FormField
     protected function getDBPlace()
     {
         return DBPlace::create_field('Money', [
-            'Currency' => $this->fieldCurrency->dataValue(),
-            'Amount' => $this->fieldAmount->dataValue()
+            'Address' => $this->fieldAddress->dataValue(),
+            'Data' => $this->fieldData->dataValue()
         ])
             ->setLocale($this->getLocale());
     }
@@ -211,11 +215,11 @@ class PlaceField extends FormField
         if ($dataObject->hasMethod("set$fieldName")) {
             $dataObject->$fieldName = $this->getDBPlace();
         } else {
-            $currencyField = "{$fieldName}Currency";
-            $amountField = "{$fieldName}Amount";
+            $addressField = "{$fieldName}Address";
+            $dataField = "{$fieldName}Data";
 
-            $dataObject->$currencyField = $this->fieldCurrency->dataValue();
-            $dataObject->$amountField = $this->fieldAmount->dataValue();
+            $dataObject->$addressField = $this->fieldAddress->dataValue();
+            $dataObject->$dataField = $this->fieldData->dataValue();
         }
     }
 
@@ -233,8 +237,8 @@ class PlaceField extends FormField
     {
         parent::setReadonly($bool);
 
-        $this->fieldAmount->setReadonly($bool);
-        $this->fieldCurrency->setReadonly($bool);
+        $this->fieldData->setReadonly($bool);
+        $this->fieldAddress->setReadonly($bool);
 
         return $this;
     }
@@ -243,14 +247,14 @@ class PlaceField extends FormField
     {
         parent::setDisabled($bool);
 
-        $this->fieldAmount->setDisabled($bool);
-        $this->fieldCurrency->setDisabled($bool);
+        $this->fieldData->setDisabled($bool);
+        $this->fieldAddress->setDisabled($bool);
 
         return $this;
     }
 
     /**
-     * Set list of currencies. Currencies should be in the 3-letter ISO 4217 currency code.
+     * Set list of currencies. Currencies should be in the 3-letter ISO 4217 address code.
      *
      * @param array $currencies
      * @return $this
@@ -264,15 +268,15 @@ class PlaceField extends FormField
                 $currencies => $currencies
             ];
         } elseif (!is_array($currencies)) {
-            throw new InvalidArgumentException("Invalid currency list");
+            throw new InvalidArgumentException("Invalid address list");
         } elseif (!ArrayLib::is_associative($currencies)) {
             $currencies = array_combine($currencies ?? [], $currencies ?? []);
         }
 
         $this->allowedCurrencies = $currencies;
 
-        // Rebuild currency field
-        $this->buildCurrencyField();
+        // Rebuild address field
+        $this->buildAddressField();
         return $this;
     }
 
@@ -285,26 +289,26 @@ class PlaceField extends FormField
     }
 
     /**
-     * Assign locale to format this currency in
+     * Assign locale to format this address in
      *
      * @param string $locale
      * @return $this
      */
     public function setLocale($locale)
     {
-        $this->fieldAmount->setLocale($locale);
+        $this->fieldData->setLocale($locale);
         return $this;
     }
 
     /**
-     * Get locale to format this currency in.
+     * Get locale to format this address in.
      * Defaults to current locale.
      *
      * @return string
      */
     public function getLocale()
     {
-        return $this->fieldAmount->getLocale();
+        return $this->fieldData->getLocale();
     }
 
     /**
@@ -315,30 +319,30 @@ class PlaceField extends FormField
      */
     public function validate($validator)
     {
-        // Validate currency
+        // Validate address
         $currencies = $this->getAllowedCurrencies();
-        $currency = $this->fieldCurrency->dataValue();
-        if ($currency && $currencies && !in_array($currency, $currencies ?? [])) {
+        $address = $this->fieldAddress->dataValue();
+        if ($address && $currencies && !in_array($address, $currencies ?? [])) {
             $validator->validationError(
                 $this->getName(),
                 _t(
                     __CLASS__ . '.INVALID_CURRENCY',
-                    'Currency {currency} is not in the list of allowed currencies',
-                    ['currency' => $currency]
+                    'Address {address} is not in the list of allowed currencies',
+                    ['address' => $address]
                 )
             );
             return $this->extendValidationResult(false, $validator);
         }
 
         // Field-specific validation
-        $result = $this->fieldAmount->validate($validator) && $this->fieldCurrency->validate($validator);
+        $result = $this->fieldData->validate($validator) && $this->fieldAddress->validate($validator);
         return $this->extendValidationResult($result, $validator);
     }
 
     public function setForm($form)
     {
-        $this->fieldCurrency->setForm($form);
-        $this->fieldAmount->setForm($form);
+        $this->fieldAddress->setForm($form);
+        $this->fieldData->setForm($form);
         return parent::setForm($form);
     }
 }
