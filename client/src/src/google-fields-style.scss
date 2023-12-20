@@ -1,4 +1,12 @@
+.goldfinch-google-map {}
 
-.goldfinch-google-fields {
-  background-color: purple;
+.goldfinch-google-map .ggm__frame {
+  height: 400px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 5px;
 }
+
+.goldfinch-google-place {}
+
+.goldfinch-google-place .ggp__preview {}

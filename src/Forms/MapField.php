@@ -5,8 +5,10 @@ namespace Goldfinch\GoogleFields\Forms;
 use InvalidArgumentException;
 use SilverStripe\ORM\ArrayLib;
 use SilverStripe\Forms\FormField;
-use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\TextField;
+use SilverStripe\Core\Environment;
+use SilverStripe\View\Requirements;
+use SilverStripe\Forms\LiteralField;
 use SilverStripe\ORM\DataObjectInterface;
 use Goldfinch\GoogleFields\ORM\FieldType\DBMap;
 
@@ -64,7 +66,7 @@ class MapField extends FormField
 
     public function getMapField()
     {
-        return LiteralField::create($this->getName() . 'Map', '<div style="height: 400px" data-goldfinch-map="frame"></div>');
+        return LiteralField::create($this->getName() . 'Map', '<div class="ggm__frame" data-goldfinch-map="frame"></div>');
     }
 
     public function __construct($name, $title = null, $value = "")
@@ -86,6 +88,10 @@ class MapField extends FormField
         $this->fieldZoom->setAttribute('data-goldfinch-map', 'zoom');
 
         $this->buildLongitudeField();
+
+        Requirements::css('goldfinch/google-fields:client/dist/google-fields-style.css');
+        Requirements::javascript('goldfinch/google-fields:client/dist/google-fields.js');
+        Requirements::javascript('//maps.googleapis.com/maps/api/js?key=' . Environment::getEnv('APP_GOOGLE_MAPS_KEY') . '&callback=googleFieldsInit&libraries=places&v=weekly');
 
         parent::__construct($name, $title, $value);
     }

@@ -7,8 +7,9 @@ use SilverStripe\ORM\ArrayLib;
 use SilverStripe\Forms\FormField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Core\Environment;
-use SilverStripe\View\Requirements;
 use SilverStripe\Forms\HiddenField;
+use SilverStripe\View\Requirements;
+use SilverStripe\Forms\LiteralField;
 use SilverStripe\ORM\DataObjectInterface;
 use Goldfinch\GoogleFields\ORM\FieldType\DBPlace;
 
@@ -52,6 +53,11 @@ class PlaceField extends FormField
     public function getDataField()
     {
         return $this->fieldData;
+    }
+
+    public function getPreviewField()
+    {
+        return LiteralField::create($this->getName() . 'Map', '<div class="ggp__preview" data-goldfinch-place="preview"></div>');
     }
 
     public function __construct($name, $title = null, $value = "")

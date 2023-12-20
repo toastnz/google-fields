@@ -4,6 +4,33 @@
     console.log('google init')
   }
 
+  function loadPlaceData() {
+
+    $('[data-goldfinch-google-place-field]')
+
+  }
+
+  $(document).ready(() => {
+
+    $('[data-goldfinch-google-place-field]').each((i, e) => {
+
+      let v = $(e).find('[data-goldfinch-place="data"]');
+
+      if (v.length && v.val()) {
+        let json = JSON.parse($(e).find('[data-goldfinch-place="data"]').val());
+
+        let preview = $(e).find('[data-goldfinch-place="preview"]');
+
+        let content = '';
+
+        console.log(json)
+
+        preview.html(content)
+      }
+    })
+
+  });
+
   $.entwine('ss', function($) {
       $('[data-goldfinch-google-place-field]').entwine({
           onmatch: function() {
@@ -45,7 +72,10 @@
           let lng = parseFloat(longitude.value);
           let zoom = parseFloat(zoomField.value);
 
-          if (!zoom) zoom = 12 // default
+           // defaults
+          if (!zoom) zoom = 2
+          if (!lat) lat = 0.30391468217020234;
+          if (!lng) lng = 71.78142348820073;
 
           console.log('init vals', lat, lng, zoom)
 
@@ -77,6 +107,7 @@
 
             latitude.value = event.latLng.lat()
             longitude.value = event.latLng.lng()
+            zoomField.value = map.getZoom()
           });
 
         }
