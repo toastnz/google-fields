@@ -5,10 +5,12 @@ namespace Goldfinch\GoogleFields\Forms;
 use InvalidArgumentException;
 use SilverStripe\ORM\ArrayLib;
 use SilverStripe\Forms\FormField;
-use Goldfinch\GoogleFields\ORM\FieldType\DBPlace;
-use SilverStripe\ORM\DataObjectInterface;
 use SilverStripe\Forms\TextField;
-use SilverStripe\Forms\NumericField;
+use SilverStripe\Core\Environment;
+use SilverStripe\View\Requirements;
+use SilverStripe\Forms\HiddenField;
+use SilverStripe\ORM\DataObjectInterface;
+use Goldfinch\GoogleFields\ORM\FieldType\DBPlace;
 
 class PlaceField extends FormField
 {
@@ -23,7 +25,7 @@ class PlaceField extends FormField
     protected $allowedCurrencies = [];
 
     /**
-     * @var NumericField
+     * @var HiddenField
      */
     protected $fieldData = null;
 
@@ -45,7 +47,7 @@ class PlaceField extends FormField
     /**
      * Gets field for the data input
      *
-     * @return NumericField
+     * @return HiddenField
      */
     public function getDataField()
     {
@@ -55,12 +57,18 @@ class PlaceField extends FormField
     public function __construct($name, $title = null, $value = "")
     {
         $this->setName($name);
-        $this->fieldData = NumericField::create(
+        $this->fieldData = HiddenField::create(
             "{$name}[Data]",
             _t('SilverStripe\\Forms\\PlaceField.FIELDLABELAMOUNT', 'Data')
-        )
-            ->setScale(2);
+        );
+
+        $this->fieldData->setAttribute('data-goldfinch-place', 'data');
+
         $this->buildAddressField();
+
+        Requirements::css('goldfinch/google-fields:client/dist/google-fields-style.css');
+        Requirements::javascript('goldfinch/google-fields:client/dist/google-fields.js');
+        Requirements::javascript('//maps.googleapis.com/maps/api/js?key=' . Environment::getEnv('APP_GOOGLE_MAPS_KEY') . '&callback=googleFieldsInit&libraries=places&v=weekly');
 
         parent::__construct($name, $title, $value);
     }
@@ -108,6 +116,9 @@ class PlaceField extends FormField
         if ($addressValue) {
             $field->setValue($addressValue);
         }
+
+        $field->setAttribute('data-goldfinch-place', 'address');
+
         $this->fieldAddress = $field;
         return $field;
     }
@@ -182,8 +193,7 @@ class PlaceField extends FormField
         return DBPlace::create_field('Money', [
             'Address' => $this->fieldAddress->dataValue(),
             'Data' => $this->fieldData->dataValue()
-        ])
-            ->setLocale($this->getLocale());
+        ]);
     }
 
     public function dataValue()
@@ -286,29 +296,6 @@ class PlaceField extends FormField
     public function getAllowedCurrencies()
     {
         return $this->allowedCurrencies;
-    }
-
-    /**
-     * Assign locale to format this address in
-     *
-     * @param string $locale
-     * @return $this
-     */
-    public function setLocale($locale)
-    {
-        $this->fieldData->setLocale($locale);
-        return $this;
-    }
-
-    /**
-     * Get locale to format this address in.
-     * Defaults to current locale.
-     *
-     * @return string
-     */
-    public function getLocale()
-    {
-        return $this->fieldData->getLocale();
     }
 
     /**

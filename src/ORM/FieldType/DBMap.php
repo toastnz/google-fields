@@ -19,27 +19,28 @@ class DBMap extends DBComposite
      * @var array<string,string>
      */
     private static $composite_db = [
-        'Longitude' => 'Decimal(11,9)',
-        'Latitude' => 'Decimal(10,9)'
+        'Longitude' => 'Varchar(32)',
+        'Latitude' => 'Varchar(32)',
+        'Zoom' => 'Varchar(6)'
     ];
 
     /**
-     * Get currency formatter
+     * Get longitude formatter
      *
      * @return NumberFormatter
      */
     public function getFormatter()
     {
         $locale = $this->getLocale();
-        $currency = $this->getLongitude();
-        if ($currency) {
-            $locale .= '@currency=' . $currency;
+        $longitude = $this->getLongitude();
+        if ($longitude) {
+            $locale .= '@longitude=' . $longitude;
         }
         return NumberFormatter::create($locale, NumberFormatter::CURRENCY);
     }
 
     /**
-     * Get nicely formatted currency (based on current locale)
+     * Get nicely formatted longitude (based on current locale)
      *
      * @return string
      */
@@ -48,17 +49,17 @@ class DBMap extends DBComposite
         if (!$this->exists()) {
             return null;
         }
-        $amount = $this->getLatitude();
-        $currency = $this->getLongitude();
+        $latitude = $this->getLatitude();
+        $longitude = $this->getLongitude();
 
-        // Without currency, format as basic localised number
+        // Without longitude, format as basic localised number
         $formatter = $this->getFormatter();
-        if (!$currency) {
-            return $formatter->format($amount);
+        if (!$longitude) {
+            return $formatter->format($latitude);
         }
 
-        // Localise currency
-        return $formatter->formatLongitude($amount, $currency);
+        // Localise longitude
+        return $formatter->formatLongitude($latitude, $longitude);
     }
 
     /**
@@ -71,12 +72,12 @@ class DBMap extends DBComposite
         if (!$this->exists()) {
             return null;
         }
-        $amount = $this->getLatitude();
-        $currency = $this->getLongitude();
-        if (empty($currency)) {
-            return $amount;
+        $latitude = $this->getLatitude();
+        $longitude = $this->getLongitude();
+        if (empty($longitude)) {
+            return $latitude;
         }
-        return $amount . ' ' . $currency;
+        return $latitude . ' ' . $longitude;
     }
 
     /**
@@ -88,13 +89,13 @@ class DBMap extends DBComposite
     }
 
     /**
-     * @param string $currency
+     * @param string $longitude
      * @param bool $markChanged
      * @return $this
      */
-    public function setLongitude($currency, $markChanged = true)
+    public function setLongitude($longitude, $markChanged = true)
     {
-        $this->setField('Longitude', $currency, $markChanged);
+        $this->setField('Longitude', $longitude, $markChanged);
         return $this;
     }
 
@@ -107,17 +108,40 @@ class DBMap extends DBComposite
     }
 
     /**
-     * @param mixed $amount
+     * @return float
+     */
+    public function getZoom()
+    {
+        return $this->getField('Zoom');
+    }
+
+    /**
+     * @param mixed $latitude
      * @param bool $markChanged
      * @return $this
      */
-    public function setLatitude($amount, $markChanged = true)
+    public function setLatitude($latitude, $markChanged = true)
     {
         // Retain nullability to mark this field as empty
-        if (isset($amount)) {
-            $amount = (float)$amount;
+        if (isset($latitude)) {
+            $latitude = (float)$latitude;
         }
-        $this->setField('Latitude', $amount, $markChanged);
+        $this->setField('Latitude', $latitude, $markChanged);
+        return $this;
+    }
+
+    /**
+     * @param mixed $latitude
+     * @param bool $markChanged
+     * @return $this
+     */
+    public function setZoom($zoom, $markChanged = true)
+    {
+        // Retain nullability to mark this field as empty
+        if (isset($zoom)) {
+            $zoom = (float)$zoom;
+        }
+        $this->setField('Zoom', $zoom, $markChanged);
         return $this;
     }
 
@@ -130,7 +154,7 @@ class DBMap extends DBComposite
     }
 
     /**
-     * Determine if this has a non-zero amount
+     * Determine if this has a non-zero latitude
      *
      * @return bool
      */
@@ -159,7 +183,7 @@ class DBMap extends DBComposite
     }
 
     /**
-     * Get currency symbol
+     * Get longitude symbol
      *
      * @return string
      */

@@ -5,10 +5,10 @@ namespace Goldfinch\GoogleFields\Forms;
 use InvalidArgumentException;
 use SilverStripe\ORM\ArrayLib;
 use SilverStripe\Forms\FormField;
-use Goldfinch\GoogleFields\ORM\FieldType\DBMap;
-use SilverStripe\ORM\DataObjectInterface;
+use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\TextField;
-use SilverStripe\Forms\NumericField;
+use SilverStripe\ORM\DataObjectInterface;
+use Goldfinch\GoogleFields\ORM\FieldType\DBMap;
 
 class MapField extends FormField
 {
@@ -23,7 +23,7 @@ class MapField extends FormField
     protected $allowedCurrencies = [];
 
     /**
-     * @var NumericField
+     * @var TextField
      */
     protected $fieldLatitude = null;
 
@@ -45,21 +45,46 @@ class MapField extends FormField
     /**
      * Gets field for the latitude input
      *
-     * @return NumericField
+     * @return TextField
      */
     public function getLatitudeField()
     {
         return $this->fieldLatitude;
     }
 
+    /**
+     * Gets field for the latitude input
+     *
+     * @return TextField
+     */
+    public function getZoomField()
+    {
+        return $this->fieldZoom;
+    }
+
+    public function getMapField()
+    {
+        return LiteralField::create($this->getName() . 'Map', '<div style="height: 400px" data-goldfinch-map="frame"></div>');
+    }
+
     public function __construct($name, $title = null, $value = "")
     {
         $this->setName($name);
-        $this->fieldLatitude = NumericField::create(
+
+        $this->fieldLatitude = TextField::create(
             "{$name}[Latitude]",
             _t('SilverStripe\\Forms\\MapField.FIELDLABELAMOUNT', 'Latitude')
-        )
-            ->setScale(2);
+        );
+
+        $this->fieldLatitude->setAttribute('data-goldfinch-map', 'latitude');
+
+        $this->fieldZoom = TextField::create(
+            "{$name}[Zoom]",
+            _t('SilverStripe\\Forms\\MapField.FIELDLABELAMOUNT', 'Zoom')
+        );
+
+        $this->fieldZoom->setAttribute('data-goldfinch-map', 'zoom');
+
         $this->buildLongitudeField();
 
         parent::__construct($name, $title, $value);
@@ -69,6 +94,7 @@ class MapField extends FormField
     {
         $this->fieldLatitude = clone $this->fieldLatitude;
         $this->fieldLongitude = clone $this->fieldLongitude;
+        $this->fieldZoom = clone $this->fieldZoom;
     }
 
     /**
@@ -108,6 +134,9 @@ class MapField extends FormField
         if ($longitudeValue) {
             $field->setValue($longitudeValue);
         }
+
+        $field->setAttribute('data-goldfinch-map', 'longitude');
+
         $this->fieldLongitude = $field;
         return $field;
     }
@@ -118,6 +147,7 @@ class MapField extends FormField
             $this->value = null;
             $this->fieldLongitude->setValue(null);
             $this->fieldLatitude->setValue(null);
+            $this->fieldZoom->setValue(null);
             return $this;
         }
 
@@ -129,6 +159,7 @@ class MapField extends FormField
         // Update each field
         $this->fieldLongitude->setSubmittedValue($value['Longitude'], $value);
         $this->fieldLatitude->setSubmittedValue($value['Latitude'], $value);
+        $this->fieldZoom->setSubmittedValue($value['Zoom'], $value);
 
         // Get data value
         $this->value = $this->dataValue();
@@ -141,25 +172,17 @@ class MapField extends FormField
             $this->value = null;
             $this->fieldLongitude->setValue(null);
             $this->fieldLatitude->setValue(null);
+            $this->fieldZoom->setValue(null);
             return $this;
         }
 
         // dd($value);
 
-        // Convert string to array
-        // E.g. `44.00 NZD`
-        if (is_string($value) &&
-            preg_match('/^(?<latitude>[\\d\\.]+)( (?<longitude>\w{3}))?$/i', $value ?? '', $matches)
-        ) {
-            $longitude = isset($matches['longitude']) ? strtoupper($matches['longitude']) : null;
-            $value = [
-                'Longitude' => $longitude,
-                'Latitude' => (float)$matches['latitude'],
-            ];
-        } elseif ($value instanceof DBMap) {
+        if ($value instanceof DBMap) {
             $value = [
                 'Longitude' => $value->getLongitude(),
                 'Latitude' => $value->getLatitude(),
+                'Zoom' => $value->getZoom(),
             ];
         } elseif (!is_array($value)) {
             throw new InvalidArgumentException("Invalid longitude format");
@@ -168,6 +191,7 @@ class MapField extends FormField
         // Save value
         $this->fieldLongitude->setValue($value['Longitude'], $value);
         $this->fieldLatitude->setValue($value['Latitude'], $value);
+        $this->fieldZoom->setValue($value['Zoom'], $value);
         $this->value = $this->dataValue();
         return $this;
     }
@@ -181,9 +205,9 @@ class MapField extends FormField
     {
         return DBMap::create_field('Money', [
             'Longitude' => $this->fieldLongitude->dataValue(),
-            'Latitude' => $this->fieldLatitude->dataValue()
-        ])
-            ->setLocale($this->getLocale());
+            'Latitude' => $this->fieldLatitude->dataValue(),
+            'Zoom' => $this->fieldZoom->dataValue()
+        ]);
     }
 
     public function dataValue()
@@ -217,9 +241,11 @@ class MapField extends FormField
         } else {
             $longitudeField = "{$fieldName}Longitude";
             $latitudeField = "{$fieldName}Latitude";
+            $zoomField = "{$fieldName}Zoom";
 
             $dataObject->$longitudeField = $this->fieldLongitude->dataValue();
             $dataObject->$latitudeField = $this->fieldLatitude->dataValue();
+            $dataObject->$zoomField = $this->fieldZoom->dataValue();
         }
     }
 
@@ -286,29 +312,6 @@ class MapField extends FormField
     public function getAllowedCurrencies()
     {
         return $this->allowedCurrencies;
-    }
-
-    /**
-     * Assign locale to format this longitude in
-     *
-     * @param string $locale
-     * @return $this
-     */
-    public function setLocale($locale)
-    {
-        $this->fieldLatitude->setLocale($locale);
-        return $this;
-    }
-
-    /**
-     * Get locale to format this longitude in.
-     * Defaults to current locale.
-     *
-     * @return string
-     */
-    public function getLocale()
-    {
-        return $this->fieldLatitude->getLocale();
     }
 
     /**
