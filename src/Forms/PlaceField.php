@@ -18,6 +18,10 @@ class PlaceField extends FormField
 
     protected $schemaDataType = 'PlaceField';
 
+    protected $settings = [
+      'country' => 'nz',
+    ];
+
     /**
      * Limit the currencies
      *
@@ -58,6 +62,19 @@ class PlaceField extends FormField
     public function getPreviewField()
     {
         return LiteralField::create($this->getName() . 'Map', '<div class="ggp__preview" data-goldfinch-place="preview"></div>');
+    }
+
+
+    public function setSettings($settings)
+    {
+        $this->settings = $settings;
+
+        return $this;
+    }
+
+    public function getSettings()
+    {
+        return $this->settings;
     }
 
     public function __construct($name, $title = null, $value = "")
@@ -186,6 +203,9 @@ class PlaceField extends FormField
         $this->fieldAddress->setValue($value['Address'], $value);
         $this->fieldData->setValue($value['Data'], $value);
         $this->value = $this->dataValue();
+
+        $this->fieldAddress->setAttribute('data-settings', json_encode($this->getSettings()));
+
         return $this;
     }
 

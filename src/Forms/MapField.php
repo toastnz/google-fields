@@ -17,6 +17,12 @@ class MapField extends FormField
 
     protected $schemaDataType = 'MapField';
 
+    protected $settings = [
+      'zoom' => 2,
+      'lat' => 9.058948064030377,
+      'lng' => 82.47341002295963,
+    ];
+
     /**
      * Limit the currencies
      *
@@ -66,7 +72,24 @@ class MapField extends FormField
 
     public function getMapField()
     {
-        return LiteralField::create($this->getName() . 'Map', '<div class="ggm__frame" data-goldfinch-map="frame"></div>');
+        return LiteralField::create($this->getName() . 'Map', '<div class="ggm__frame" data-goldfinch-map="frame" data-settings="'.str_replace('"','&quot;', json_encode($this->getSettings())).'"></div>');
+    }
+
+    public function getSearchField()
+    {
+        return TextField::create($this->getName() . 'Search', '')->setAttribute('placeholder', 'Find a place (type and hit enter)')->setAttribute('data-goldfinch-map', 'search')->addExtraClass('ggm__search');
+    }
+
+    public function setSettings($settings)
+    {
+        $this->settings = $settings;
+
+        return $this;
+    }
+
+    public function getSettings()
+    {
+        return $this->settings;
     }
 
     public function __construct($name, $title = null, $value = "")

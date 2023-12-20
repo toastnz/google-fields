@@ -1,16 +1,42 @@
 (function($) {
 
   window.googleFieldsInit = () => {
-    console.log('google init')
+    // console.log('google init')
   }
 
-  function loadPlaceData() {
-
-    $('[data-goldfinch-google-place-field]')
-
+  function updateMapFields(map, latLng, latitude, longitude, zoomField) {
+    latitude.value = latLng.lat()
+    longitude.value = latLng.lng()
+    zoomField.value = map.getZoom()
   }
 
-  $(document).ready(() => {
+  function findOnMap(map, marker, e, latitude, longitude, zoomField) {
+
+    let field = $(e.currentTarget)
+    var searchQuery = field.val()
+
+    if(searchQuery) {
+
+      geocoder = new google.maps.Geocoder()
+      geocoder.geocode({ address: searchQuery }, (result, status) => {
+
+        if (google.maps.GeocoderStatus.OK === status) {
+          let location = result[0].geometry.location;
+          marker.setPosition(location)
+          map.panTo(location);
+
+          updateMapFields(map, location, latitude, longitude, zoomField)
+        } else {
+          console.warn('Find a place: ' + searchQuery + ' not found')
+        }
+      })
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  function reloadPlaceData() {
 
     $('[data-goldfinch-google-place-field]').each((i, e) => {
 
@@ -21,13 +47,52 @@
 
         let preview = $(e).find('[data-goldfinch-place="preview"]');
 
-        let content = '';
+        let content = $('<ul>');
 
-        console.log(json)
+        // console.log(json.address_components)
+        // console.log(json.geometry.location)
+
+        json.address_components.forEach((i, k) => {
+          let label = i.types.join();
+
+          if (i.types.includes('subpremise')) {
+            label = 'Subpremise'
+          } else if (i.types.includes('street_number')) {
+            label = 'Street number'
+          } else if (i.types.includes('route')) {
+            label = 'Street name'
+          } else if (i.types.includes('locality')) {
+            label = 'Suburb'
+          } else if (i.types.includes('sublocality')) {
+            label = 'Subarea'
+          } else if (i.types.includes('administrative_area_level_1')) {
+            label = 'Region'
+          } else if (i.types.includes('administrative_area_level_2')) {
+            label = 'District'
+          } else if (i.types.includes('country')) {
+            label = 'Country'
+          } else if (i.types.includes('postal_code')) {
+            label = 'Postcode'
+          }
+
+          content.append('<li><b>'+label+'</b>: '+i.long_name+'</li>')
+        })
+
+        let location = json.geometry.location;
+
+        content.append('<li><b>Latitude</b>: '+location.lat+'</li>')
+        content.append('<li><b>Longitude</b>: '+location.lng+'</li>')
+        content.append('<li><a target="_blank" href="https://www.google.com/maps/search/?api=1&query='+location.lat+','+location.lng+'">Open Google Maps</a></li>')
 
         preview.html(content)
       }
     })
+
+  }
+
+  $(document).ready(() => {
+
+    reloadPlaceData()
 
   });
 
@@ -35,13 +100,14 @@
       $('[data-goldfinch-google-place-field]').entwine({
           onmatch: function() {
 
-            console.log('place entwine')
+            // console.log('place entwine')
 
             var address = $(this).find('[data-goldfinch-place="address"]')[0];
             var data = $(this).find('[data-goldfinch-place="data"]')[0];
-
+            var settings = JSON.parse($(address).attr('data-settings'));
+            console.log(settings)
             const options = {
-              componentRestrictions: { country: 'nz' },
+              componentRestrictions: { country: settings.country },
               fields: ['address_components', 'geometry', 'name'],
               strictBounds: false,
             };
@@ -51,9 +117,11 @@
             autocomplete.addListener('place_changed', () => {
 
                 const place = autocomplete.getPlace();
-                console.log('place', place)
+                // console.log('place', place)
 
                 data.value = JSON.stringify(place)
+
+                reloadPlaceData()
             });
 
           }
@@ -61,23 +129,25 @@
       $('[data-goldfinch-google-map-field]').entwine({
         onmatch: function() {
 
-          console.log('map entwine')
+          // console.log('map entwine')
 
           var latitude = $(this).find('[data-goldfinch-map="latitude"]')[0];
           var longitude = $(this).find('[data-goldfinch-map="longitude"]')[0];
           var zoomField = $(this).find('[data-goldfinch-map="zoom"]')[0];
           var frame = $(this).find('[data-goldfinch-map="frame"]')[0];
+          var search = $(this).find('[data-goldfinch-map="search"]')[0];
+          var settings = JSON.parse($(frame).attr('data-settings'));
 
           let lat = parseFloat(latitude.value);
           let lng = parseFloat(longitude.value);
           let zoom = parseFloat(zoomField.value);
 
            // defaults
-          if (!zoom) zoom = 2
-          if (!lat) lat = 0.30391468217020234;
-          if (!lng) lng = 71.78142348820073;
+          if (!zoom) zoom = settings.zoom
+          if (!lat) lat = settings.lat
+          if (!lng) lng = settings.lng
 
-          console.log('init vals', lat, lng, zoom)
+          // console.log('init vals', lat, lng, zoom)
 
           let map = new google.maps.Map(frame, {
             center: { lat: lat, lng: lng },
@@ -105,10 +175,18 @@
             marker.setPosition(event.latLng)
             map.panTo(event.latLng);
 
-            latitude.value = event.latLng.lat()
-            longitude.value = event.latLng.lng()
-            zoomField.value = map.getZoom()
+            updateMapFields(map, event.latLng, latitude, longitude, zoomField)
           });
+
+          $(search).on({
+            'change': search,
+            'keydown': (e) => {
+
+              if (e.which == 13) {
+                findOnMap(map, marker, e, latitude, longitude, zoomField)
+              }
+            }
+          })
 
         }
     });
