@@ -17,8 +17,8 @@ MapField::create('Map', 'Map')
 
 // set default settings:
 MapField::create('Map', 'Map')->setSettings([
-    'lng' => 168.7439017,
-    'lat' => -45.0136784,
+    'lng' => 168.73148910089623,
+    'lat' => -45.01597101207079,
     'zoom' => 10,
 ])
 ```
