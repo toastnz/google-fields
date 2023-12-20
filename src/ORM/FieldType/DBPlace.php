@@ -6,6 +6,7 @@ use NumberFormatter;
 use SilverStripe\Forms\FormField;
 use SilverStripe\Forms\PlaceField;
 use SilverStripe\i18n\i18n;
+SilverStripe\ORM\FieldType\DBComposite;
 
 class DBPlace extends DBComposite
 {
