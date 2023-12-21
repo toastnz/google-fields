@@ -2,10 +2,9 @@
 
 namespace Goldfinch\GoogleFields\ORM\FieldType;
 
-use NumberFormatter;
+use SilverStripe\i18n\i18n;
 use SilverStripe\Forms\FormField;
 use Goldfinch\GoogleFields\Forms\MapField;
-use SilverStripe\i18n\i18n;
 use SilverStripe\ORM\FieldType\DBComposite;
 
 class DBMap extends DBComposite
@@ -25,26 +24,11 @@ class DBMap extends DBComposite
     ];
 
     /**
-     * Get longitude formatter
-     *
-     * @return NumberFormatter
-     */
-    public function getFormatter()
-    {
-        $locale = $this->getLocale();
-        $longitude = $this->getLongitude();
-        if ($longitude) {
-            $locale .= '@longitude=' . $longitude;
-        }
-        return NumberFormatter::create($locale, NumberFormatter::CURRENCY);
-    }
-
-    /**
-     * Get nicely formatted longitude (based on current locale)
+     * Get Google link
      *
      * @return string
      */
-    public function Nice()
+    public function Link()
     {
         if (!$this->exists()) {
             return null;
@@ -52,18 +36,10 @@ class DBMap extends DBComposite
         $latitude = $this->getLatitude();
         $longitude = $this->getLongitude();
 
-        // Without longitude, format as basic localised number
-        $formatter = $this->getFormatter();
-        if (!$longitude) {
-            return $formatter->format($latitude);
-        }
-
-        // Localise longitude
-        return $formatter->formatLongitude($latitude, $longitude);
+        return 'https://www.google.com/maps/search/?api=1&query=' . $latitude . ',' . $longitude;
     }
 
     /**
-     * Standard '0.00 CUR' format (non-localised)
      *
      * @return string
      */
@@ -180,16 +156,6 @@ class DBMap extends DBComposite
     public function getLocale()
     {
         return $this->locale ?: i18n::get_locale();
-    }
-
-    /**
-     * Get longitude symbol
-     *
-     * @return string
-     */
-    public function getSymbol()
-    {
-        return $this->getFormatter()->getSymbol(NumberFormatter::CURRENCY_SYMBOL);
     }
 
     /**

@@ -14,7 +14,6 @@ use Goldfinch\GoogleFields\ORM\FieldType\DBMap;
 
 class MapField extends FormField
 {
-
     protected $schemaDataType = 'MapField';
 
     protected $settings = [
@@ -22,13 +21,6 @@ class MapField extends FormField
       'lat' => 9.058948064030377,
       'lng' => 82.47341002295963,
     ];
-
-    /**
-     * Limit the currencies
-     *
-     * @var array
-     */
-    protected $allowedCurrencies = [];
 
     /**
      * @var TextField
@@ -96,17 +88,11 @@ class MapField extends FormField
     {
         $this->setName($name);
 
-        $this->fieldLatitude = TextField::create(
-            "{$name}[Latitude]",
-            _t('SilverStripe\\Forms\\MapField.FIELDLABELAMOUNT', 'Latitude')
-        );
+        $this->fieldLatitude = TextField::create("{$name}[Latitude]", "Latitude");
 
         $this->fieldLatitude->setAttribute('data-goldfinch-map', 'latitude');
 
-        $this->fieldZoom = TextField::create(
-            "{$name}[Zoom]",
-            _t('SilverStripe\\Forms\\MapField.FIELDLABELAMOUNT', 'Zoom')
-        );
+        $this->fieldZoom = TextField::create("{$name}[Zoom]", "Zoom");
 
         $this->fieldZoom->setAttribute('data-goldfinch-map', 'zoom');
 
@@ -127,7 +113,7 @@ class MapField extends FormField
     }
 
     /**
-     * Builds a new longitude field based on the allowed currencies configured
+     * Builds a new longitude field
      *
      * @return FormField
      */
@@ -135,28 +121,9 @@ class MapField extends FormField
     {
         $name = $this->getName();
 
-        // Validate allowed currencies
         $longitudeValue = $this->fieldLongitude ? $this->fieldLongitude->dataValue() : null;
-        $allowedCurrencies = $this->getAllowedCurrencies();
-        if (count($allowedCurrencies ?? []) === 1) {
-            // Hidden field for single longitude
-            $field = HiddenField::create("{$name}[Longitude]");
-            reset($allowedCurrencies);
-            $longitudeValue = key($allowedCurrencies ?? []);
-        } elseif ($allowedCurrencies) {
-            // Dropdown field for multiple currencies
-            $field = DropdownField::create(
-                "{$name}[Longitude]",
-                _t('SilverStripe\\Forms\\MapField.FIELDLABELCURRENCY', 'Longitude'),
-                $allowedCurrencies
-            );
-        } else {
-            // Free-text entry for longitude value
-            $field = TextField::create(
-                "{$name}[Longitude]",
-                _t('SilverStripe\\Forms\\MapField.FIELDLABELCURRENCY', 'Longitude')
-            );
-        }
+
+        $field = TextField::create("{$name}[Longitude]", "Longitude");
 
         $field->setReadonly($this->isReadonly());
         $field->setDisabled($this->isDisabled());
@@ -205,8 +172,6 @@ class MapField extends FormField
             return $this;
         }
 
-        // dd($value);
-
         if ($value instanceof DBMap) {
             $value = [
                 'Longitude' => $value->getLongitude(),
@@ -232,7 +197,7 @@ class MapField extends FormField
      */
     protected function getDBMap()
     {
-        return DBMap::create_field('Money', [
+        return DBMap::create_field('Map', [
             'Longitude' => $this->fieldLongitude->dataValue(),
             'Latitude' => $this->fieldLatitude->dataValue(),
             'Zoom' => $this->fieldZoom->dataValue()
@@ -241,25 +206,17 @@ class MapField extends FormField
 
     public function dataValue()
     {
-        // Non-localised money
+        // Non-localised
         return $this->getDBMap()->getValue();
     }
 
     public function Value()
     {
-        // Localised money
+        // Localised
         return $this->getDBMap()->Nice();
     }
 
     /**
-     * 30/06/2009 - Enhancement:
-     * SaveInto checks if set-methods are available and use them
-     * instead of setting the values in the money class directly. saveInto
-     * initiates a new Money class object to pass through the values to the setter
-     * method.
-     *
-     * (see @link MapFieldTest_CustomSetter_Object for more information)
-     *
      * @param DataObjectInterface|Object $dataObject
      */
     public function saveInto(DataObjectInterface $dataObject)
@@ -294,6 +251,30 @@ class MapField extends FormField
 
         $this->fieldLatitude->setReadonly($bool);
         $this->fieldLongitude->setReadonly($bool);
+        $this->fieldZoom->setReadonly($bool);
+
+        return $this;
+    }
+
+    public function mapReadonly()
+    {
+        $this->fieldLatitude->addExtraClass('readonly')->setAttribute('tabindex', '-1')->setAttribute('id', '__readonly__');
+        $this->fieldLongitude->addExtraClass('readonly')->setAttribute('tabindex', '-1')->setAttribute('id', '__readonly__');
+        $this->fieldZoom->addExtraClass('readonly')->setAttribute('tabindex', '-1')->setAttribute('id', '__readonly__');
+
+        return $this;
+    }
+
+    public function mapHideExtra()
+    {
+        $this->addExtraClass('goldfinch-google-map-hide-extra-fields');
+
+        return $this;
+    }
+
+    public function mapHideSearch()
+    {
+        $this->addExtraClass('goldfinch-google-map-hide-search');
 
         return $this;
     }
@@ -304,43 +285,9 @@ class MapField extends FormField
 
         $this->fieldLatitude->setDisabled($bool);
         $this->fieldLongitude->setDisabled($bool);
+        $this->fieldZoom->setDisabled($bool);
 
         return $this;
-    }
-
-    /**
-     * Set list of currencies. Currencies should be in the 3-letter ISO 4217 longitude code.
-     *
-     * @param array $currencies
-     * @return $this
-     */
-    public function setAllowedCurrencies($currencies)
-    {
-        if (empty($currencies)) {
-            $currencies = [];
-        } elseif (is_string($currencies)) {
-            $currencies = [
-                $currencies => $currencies
-            ];
-        } elseif (!is_array($currencies)) {
-            throw new InvalidArgumentException("Invalid longitude list");
-        } elseif (!ArrayLib::is_associative($currencies)) {
-            $currencies = array_combine($currencies ?? [], $currencies ?? []);
-        }
-
-        $this->allowedCurrencies = $currencies;
-
-        // Rebuild longitude field
-        $this->buildLongitudeField();
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getAllowedCurrencies()
-    {
-        return $this->allowedCurrencies;
     }
 
     /**
@@ -351,24 +298,7 @@ class MapField extends FormField
      */
     public function validate($validator)
     {
-        // Validate longitude
-        $currencies = $this->getAllowedCurrencies();
-        $longitude = $this->fieldLongitude->dataValue();
-        if ($longitude && $currencies && !in_array($longitude, $currencies ?? [])) {
-            $validator->validationError(
-                $this->getName(),
-                _t(
-                    __CLASS__ . '.INVALID_CURRENCY',
-                    'Longitude {longitude} is not in the list of allowed currencies',
-                    ['longitude' => $longitude]
-                )
-            );
-            return $this->extendValidationResult(false, $validator);
-        }
-
-        // Field-specific validation
-        $result = $this->fieldLatitude->validate($validator) && $this->fieldLongitude->validate($validator);
-        return $this->extendValidationResult($result, $validator);
+        // return $this->extendValidationResult($result, $validator);
     }
 
     public function setForm($form)

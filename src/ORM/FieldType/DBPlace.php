@@ -2,8 +2,8 @@
 
 namespace Goldfinch\GoogleFields\ORM\FieldType;
 
-use NumberFormatter;
 use SilverStripe\i18n\i18n;
+use SilverStripe\View\ArrayData;
 use SilverStripe\Forms\FormField;
 use PhpTek\JSONText\ORM\FieldType\JSONText;
 use SilverStripe\ORM\FieldType\DBComposite;
@@ -25,45 +25,148 @@ class DBPlace extends DBComposite
     ];
 
     /**
-     * Get address formatter
-     *
-     * @return NumberFormatter
-     */
-    public function getFormatter()
-    {
-        $locale = $this->getLocale();
-        $address = $this->getAddress();
-        if ($address) {
-            $locale .= '@address=' . $address;
-        }
-        return NumberFormatter::create($locale, NumberFormatter::CURRENCY);
-    }
-
-    /**
-     * Get nicely formatted address (based on current locale)
+     * Get Google link
      *
      * @return string
      */
-    public function Nice()
+    public function Link()
     {
-        if (!$this->exists()) {
-            return null;
-        }
+        $latitude = $this->getLatitude();
+        $longitude = $this->getLongitude();
+
+        return 'https://www.google.com/maps/search/?api=1&query=' . $latitude . ',' . $longitude;
+    }
+
+    public function getParse($key = null)
+    {
         $data = $this->getData();
-        $address = $this->getAddress();
 
-        // Without address, format as basic localised number
-        $formatter = $this->getFormatter();
-        if (!$address) {
-            return $formatter->format($data);
+        if (!$data) {
+          return null;
         }
 
-        // Localise address
-        return $formatter->formatAddress($data, $address);
+        $data = json_decode($data, true);
+
+        $parse = [
+            'Subpremise' => null,
+            'StreetNumber' => null,
+            'StreetName' => null,
+            'Suburb' => null,
+            'Subarea' => null,
+            'Region' => null,
+            'District' => null,
+            'Country' => null,
+            'Postcode' => null,
+
+            'PlaceName' => $data['name'],
+            'Longitude' => $data['geometry']['location']['lng'],
+            'Latitude' => $data['geometry']['location']['lat'],
+        ];
+
+        foreach ($data['address_components'] as $component)
+        {
+            if (in_array('subpremise', $component['types']))
+            {
+                $parse['Subpremise'] = $component['long_name'];
+            }
+            else if (in_array('street_number', $component['types']))
+            {
+                $parse['StreetNumber'] = $component['long_name'];
+            }
+            else if (in_array('route', $component['types']))
+            {
+                $parse['StreetName'] = $component['long_name'];
+            }
+            else if (in_array('locality', $component['types']))
+            {
+                $parse['Suburb'] = $component['long_name'];
+            }
+            else if (in_array('sublocality', $component['types']))
+            {
+                $parse['Subarea'] = $component['long_name'];
+            }
+            else if (in_array('administrative_area_level_1', $component['types']))
+            {
+                $parse['Region'] = $component['long_name'];
+            }
+            else if (in_array('administrative_area_level_2', $component['types']))
+            {
+                $parse['District'] = $component['long_name'];
+            }
+            else if (in_array('country', $component['types']))
+            {
+                $parse['Country'] = $component['long_name'];
+            }
+            else if (in_array('postal_code', $component['types']))
+            {
+                $parse['Postcode'] = $component['long_name'];
+            }
+        }
+
+        return $key ? (isset($parse[$key]) ? $parse[$key] : null) : $parse;
+    }
+
+    public function getPlaceName()
+    {
+        return $this->getParse('PlaceName');
+    }
+
+    public function getLatitude()
+    {
+        return $this->getParse('Latitude');
+    }
+
+    public function getLongitude()
+    {
+        return $this->getParse('Longitude');
+    }
+
+    public function getSubpremise()
+    {
+        return $this->getParse('Subpremise');
+    }
+
+    public function getStreetNumber()
+    {
+        return $this->getParse('StreetNumber');
+    }
+
+    public function getStreetName()
+    {
+        return $this->getParse('StreetName');
+    }
+
+    public function getSuburb()
+    {
+        return $this->getParse('Suburb');
+    }
+
+    public function getSubarea()
+    {
+        return $this->getParse('Subarea');
+    }
+
+    public function getRegion()
+    {
+        return $this->getParse('Region');
+    }
+
+    public function getDistrict()
+    {
+        return $this->getParse('District');
+    }
+
+    public function getCountry()
+    {
+        return $this->getParse('Country');
+    }
+
+    public function getPostcode()
+    {
+        return $this->getParse('Postcode');
     }
 
     /**
-     * Standard '0.00 CUR' format (non-localised)
      *
      * @return string
      */
@@ -157,16 +260,6 @@ class DBPlace extends DBComposite
     public function getLocale()
     {
         return $this->locale ?: i18n::get_locale();
-    }
-
-    /**
-     * Get address symbol
-     *
-     * @return string
-     */
-    public function getSymbol()
-    {
-        return $this->getFormatter()->getSymbol(NumberFormatter::CURRENCY_SYMBOL);
     }
 
     /**

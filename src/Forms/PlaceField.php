@@ -15,19 +15,11 @@ use Goldfinch\GoogleFields\ORM\FieldType\DBPlace;
 
 class PlaceField extends FormField
 {
-
     protected $schemaDataType = 'PlaceField';
 
     protected $settings = [
       'country' => 'nz',
     ];
-
-    /**
-     * Limit the currencies
-     *
-     * @var array
-     */
-    protected $allowedCurrencies = [];
 
     /**
      * @var HiddenField
@@ -80,10 +72,7 @@ class PlaceField extends FormField
     public function __construct($name, $title = null, $value = "")
     {
         $this->setName($name);
-        $this->fieldData = HiddenField::create(
-            "{$name}[Data]",
-            _t('SilverStripe\\Forms\\PlaceField.FIELDLABELAMOUNT', 'Data')
-        );
+        $this->fieldData = HiddenField::create("{$name}[Data]", "Data");
 
         $this->fieldData->setAttribute('data-goldfinch-place', 'data');
 
@@ -103,7 +92,7 @@ class PlaceField extends FormField
     }
 
     /**
-     * Builds a new address field based on the allowed currencies configured
+     * Builds a new address field
      *
      * @return FormField
      */
@@ -111,28 +100,9 @@ class PlaceField extends FormField
     {
         $name = $this->getName();
 
-        // Validate allowed currencies
         $addressValue = $this->fieldAddress ? $this->fieldAddress->dataValue() : null;
-        $allowedCurrencies = $this->getAllowedCurrencies();
-        if (count($allowedCurrencies ?? []) === 1) {
-            // Hidden field for single address
-            $field = HiddenField::create("{$name}[Address]");
-            reset($allowedCurrencies);
-            $addressValue = key($allowedCurrencies ?? []);
-        } elseif ($allowedCurrencies) {
-            // Dropdown field for multiple currencies
-            $field = DropdownField::create(
-                "{$name}[Address]",
-                _t('SilverStripe\\Forms\\PlaceField.FIELDLABELCURRENCY', 'Address'),
-                $allowedCurrencies
-            );
-        } else {
-            // Free-text entry for address value
-            $field = TextField::create(
-                "{$name}[Address]",
-                _t('SilverStripe\\Forms\\PlaceField.FIELDLABELCURRENCY', 'Address')
-            );
-        }
+
+        $field = TextField::create("{$name}[Address]", "Address");
 
         $field->setReadonly($this->isReadonly());
         $field->setDisabled($this->isDisabled());
@@ -178,19 +148,7 @@ class PlaceField extends FormField
             return $this;
         }
 
-        // dd($value);
-
-        // Convert string to array
-        // E.g. `44.00 NZD`
-        if (is_string($value) &&
-            preg_match('/^(?<data>[\\d\\.]+)( (?<address>\w{3}))?$/i', $value ?? '', $matches)
-        ) {
-            $address = isset($matches['address']) ? strtoupper($matches['address']) : null;
-            $value = [
-                'Address' => $address,
-                'Data' => (float)$matches['data'],
-            ];
-        } elseif ($value instanceof DBPlace) {
+        if ($value instanceof DBPlace) {
             $value = [
                 'Address' => $value->getAddress(),
                 'Data' => $value->getData(),
@@ -216,7 +174,7 @@ class PlaceField extends FormField
      */
     protected function getDBPlace()
     {
-        return DBPlace::create_field('Money', [
+        return DBPlace::create_field('Place', [
             'Address' => $this->fieldAddress->dataValue(),
             'Data' => $this->fieldData->dataValue()
         ]);
@@ -224,25 +182,17 @@ class PlaceField extends FormField
 
     public function dataValue()
     {
-        // Non-localised money
+        // Non-localised
         return $this->getDBPlace()->getValue();
     }
 
     public function Value()
     {
-        // Localised money
+        // Localised
         return $this->getDBPlace()->Nice();
     }
 
     /**
-     * 30/06/2009 - Enhancement:
-     * SaveInto checks if set-methods are available and use them
-     * instead of setting the values in the money class directly. saveInto
-     * initiates a new Money class object to pass through the values to the setter
-     * method.
-     *
-     * (see @link PlaceFieldTest_CustomSetter_Object for more information)
-     *
      * @param DataObjectInterface|Object $dataObject
      */
     public function saveInto(DataObjectInterface $dataObject)
@@ -289,39 +239,11 @@ class PlaceField extends FormField
         return $this;
     }
 
-    /**
-     * Set list of currencies. Currencies should be in the 3-letter ISO 4217 address code.
-     *
-     * @param array $currencies
-     * @return $this
-     */
-    public function setAllowedCurrencies($currencies)
+    public function placeHidePreview()
     {
-        if (empty($currencies)) {
-            $currencies = [];
-        } elseif (is_string($currencies)) {
-            $currencies = [
-                $currencies => $currencies
-            ];
-        } elseif (!is_array($currencies)) {
-            throw new InvalidArgumentException("Invalid address list");
-        } elseif (!ArrayLib::is_associative($currencies)) {
-            $currencies = array_combine($currencies ?? [], $currencies ?? []);
-        }
+        $this->addExtraClass('goldfinch-google-place-hide-preview');
 
-        $this->allowedCurrencies = $currencies;
-
-        // Rebuild address field
-        $this->buildAddressField();
         return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getAllowedCurrencies()
-    {
-        return $this->allowedCurrencies;
     }
 
     /**
@@ -332,24 +254,7 @@ class PlaceField extends FormField
      */
     public function validate($validator)
     {
-        // Validate address
-        $currencies = $this->getAllowedCurrencies();
-        $address = $this->fieldAddress->dataValue();
-        if ($address && $currencies && !in_array($address, $currencies ?? [])) {
-            $validator->validationError(
-                $this->getName(),
-                _t(
-                    __CLASS__ . '.INVALID_CURRENCY',
-                    'Address {address} is not in the list of allowed currencies',
-                    ['address' => $address]
-                )
-            );
-            return $this->extendValidationResult(false, $validator);
-        }
-
-        // Field-specific validation
-        $result = $this->fieldData->validate($validator) && $this->fieldAddress->validate($validator);
-        return $this->extendValidationResult($result, $validator);
+        // return $this->extendValidationResult($result, $validator);
     }
 
     public function setForm($form)

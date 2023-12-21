@@ -20,14 +20,25 @@
       geocoder = new google.maps.Geocoder()
       geocoder.geocode({ address: searchQuery }, (result, status) => {
 
+        $(e).removeClass('ggp-place-found');
+        $(e).removeClass('ggp-place-failed');
+
         if (google.maps.GeocoderStatus.OK === status) {
           let location = result[0].geometry.location;
           marker.setPosition(location)
           map.panTo(location);
 
+          $(e.currentTarget).addClass('ggp-place-found');
+          clearTimeout(window.placeFoundTimeout)
+          window.placeFoundTimeout = setTimeout(() => $(e.currentTarget).removeClass('ggp-place-found'), 1000);
+
           updateMapFields(map, location, latitude, longitude, zoomField)
         } else {
           console.warn('Find a place: ' + searchQuery + ' not found')
+
+          $(e.currentTarget).addClass('ggp-place-failed');
+          clearTimeout(window.placeFailedTimeout)
+          window.placeFailedTimeout = setTimeout(() => $(e.currentTarget).removeClass('ggp-place-failed'), 1000);
         }
       })
     }
@@ -48,9 +59,6 @@
         let preview = $(e).find('[data-goldfinch-place="preview"]');
 
         let content = $('<ul>');
-
-        // console.log(json.address_components)
-        // console.log(json.geometry.location)
 
         json.address_components.forEach((i, k) => {
           let label = i.types.join();
@@ -100,12 +108,10 @@
       $('[data-goldfinch-google-place-field]').entwine({
           onmatch: function() {
 
-            // console.log('place entwine')
-
             var address = $(this).find('[data-goldfinch-place="address"]')[0];
             var data = $(this).find('[data-goldfinch-place="data"]')[0];
             var settings = JSON.parse($(address).attr('data-settings'));
-            console.log(settings)
+
             const options = {
               componentRestrictions: { country: settings.country },
               fields: ['address_components', 'geometry', 'name'],
@@ -117,7 +123,6 @@
             autocomplete.addListener('place_changed', () => {
 
                 const place = autocomplete.getPlace();
-                // console.log('place', place)
 
                 data.value = JSON.stringify(place)
 
@@ -128,8 +133,6 @@
       });
       $('[data-goldfinch-google-map-field]').entwine({
         onmatch: function() {
-
-          // console.log('map entwine')
 
           var latitude = $(this).find('[data-goldfinch-map="latitude"]')[0];
           var longitude = $(this).find('[data-goldfinch-map="longitude"]')[0];
@@ -146,8 +149,6 @@
           if (!zoom) zoom = settings.zoom
           if (!lat) lat = settings.lat
           if (!lng) lng = settings.lng
-
-          // console.log('init vals', lat, lng, zoom)
 
           let map = new google.maps.Map(frame, {
             center: { lat: lat, lng: lng },
