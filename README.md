@@ -21,10 +21,6 @@ composer require goldfinch/google-fields
 #### Map component
 ![Map](screenshots/map.png)
 
-<p align="center">
-  <img src="screenshots/map.png" width="50%" title="Map" style="max-width: 500px">
-</p>
-
 ```php
 use Goldfinch\GoogleFields\Forms\MapField;
 
@@ -59,8 +55,11 @@ $Map.Latitude
 $Map.Zoom
 ```
 
-
-Place autocomple component
+#### Place autocomple component
+<p align="center">
+  <img src="screenshots/place.png" width="50%" title="Map" style="max-width: 500px">
+  <img src="screenshots/place2.png" width="50%" title="Map" style="max-width: 500px">
+</p>
 
 ```php
 use Goldfinch\GoogleFields\Forms\PlaceField;
