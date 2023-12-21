@@ -101,6 +101,8 @@ class MapField extends FormField
         Requirements::css('goldfinch/google-fields:client/dist/google-fields-style.css');
         Requirements::javascript('goldfinch/google-fields:client/dist/google-fields.js');
         Requirements::javascript('//maps.googleapis.com/maps/api/js?key=' . Environment::getEnv('APP_GOOGLE_MAPS_KEY') . '&callback=googleFieldsInit&libraries=places&v=weekly');
+        // Requirements::javascript('//maps.googleapis.com/maps/api/js?key=' . Environment::getEnv('APP_GOOGLE_MAPS_KEY') . '&callback=googleFieldsInit&v=weekly'); // without places library
+
 
         parent::__construct($name, $title, $value);
     }

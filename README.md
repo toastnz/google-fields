@@ -16,9 +16,18 @@ Google Map and Google Place (Autocomplete) fields for Silverstripe
 composer require goldfinch/google-fields
 ```
 
+.env
+
+```
+APP_GOOGLE_MAPS_KEY=""
+```
+
 ## Usage
 
 #### Map component
+
+Library required [Maps JavaScript API](https://console.cloud.google.com/apis/library/maps-backend.googleapis.com)
+
 ![Screenshot](screenshots/map.png)
 
 ```php
@@ -56,6 +65,9 @@ $Map.Zoom
 ```
 
 #### Place autocomplete component
+
+Library required [Places API](https://console.cloud.google.com/apis/library/places-backend.googleapis.com)
+
 ![Screenshot](screenshots/place.png)
 
 ```php
