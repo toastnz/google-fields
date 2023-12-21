@@ -58,6 +58,8 @@
 
         let preview = $(e).find('[data-goldfinch-place="preview"]');
 
+        preview.addClass('ggp__preview--display')
+
         let content = $('<ul>');
 
         json.address_components.forEach((i, k) => {
