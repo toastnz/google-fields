@@ -170,7 +170,7 @@ class DBMap extends DBComposite
      */
     public function scaffoldFormField($title = null, $params = null)
     {
-        return MapField::create($this->getName(), $title)
-            ->setLocale($this->getLocale());
+        return MapField::create($this->getName(), $title);
+            // ->setLocale($this->getLocale());
     }
 }

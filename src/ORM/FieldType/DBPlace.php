@@ -274,7 +274,7 @@ class DBPlace extends DBComposite
      */
     public function scaffoldFormField($title = null, $params = null)
     {
-        return PlaceField::create($this->getName(), $title)
-            ->setLocale($this->getLocale());
+        return PlaceField::create($this->getName(), $title);
+            // ->setLocale($this->getLocale());
     }
 }
