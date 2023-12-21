@@ -57,7 +57,6 @@ $Map.Zoom
 
 #### Place autocomplete component
 ![Screenshot](screenshots/place.png)
-![Screenshot](screenshots/place2.png)
 
 ```php
 use Goldfinch\GoogleFields\Forms\PlaceField;
