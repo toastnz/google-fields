@@ -1,9 +1,19 @@
 {
     "name": "goldfinch/google-fields",
-    "description": "",
+    "description": "Google Map field, Google Place Autocomplete field for Silverstripe to retrieve Latitude, Longitude, Zoom, Address details such as Street name, Region, Country etc",
     "type": "silverstripe-vendormodule",
     "keywords": [
-        "silverstripe"
+        "silverstripe",
+        "googlemapfield",
+        "googleplacefield",
+        "googlemap",
+        "googleplace",
+        "google-map",
+        "google-place",
+        "google-map-field",
+        "google-place-field",
+        "maps-javascript-api",
+        "places-api"
     ],
     "license": "MIT",
     "authors": [{
