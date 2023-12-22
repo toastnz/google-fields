@@ -205,7 +205,15 @@ class PlaceField extends FormField
             $dataField = "{$fieldName}Data";
 
             $dataObject->$addressField = $this->fieldAddress->dataValue();
-            $dataObject->$dataField = $this->fieldData->dataValue();
+
+            if ($dataObject->$addressField && $dataObject->$addressField != '')
+            {
+                $dataObject->$dataField = $this->fieldData->dataValue();
+            }
+            else
+            {
+                $dataObject->$dataField = null;
+            }
         }
     }
 

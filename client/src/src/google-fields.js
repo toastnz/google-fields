@@ -106,8 +106,21 @@
 
   });
 
+  $('.cms-edit-form').entwine({
+    onmatch(e) {
+      this._super(e);
+    },
+    onunmatch(e) {
+      this._super(e);
+    },
+    onaftersubmitform(event, data) {
+      reloadPlaceData();
+    }
+  });
+
   $.entwine('ss', function($) {
-      $('[data-goldfinch-google-place-field]').entwine({
+
+    $('[data-goldfinch-google-place-field]').entwine({
           onmatch: function() {
 
             var address = $(this).find('[data-goldfinch-place="address"]')[0];
