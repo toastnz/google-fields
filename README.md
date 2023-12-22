@@ -6,9 +6,7 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/goldfinch/google-fields.svg?labelColor=333&color=F8C630&label=Downloads)](https://packagist.org/packages/spatie/schema-org)
 [![License](https://img.shields.io/packagist/l/goldfinch/google-fields.svg?labelColor=333&color=F8C630&label=License)](https://packagist.org/packages/spatie/schema-org) 
 
-
 Google Map and Google Place (Autocomplete) fields for Silverstripe
-
 
 ## Install
 
