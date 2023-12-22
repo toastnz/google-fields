@@ -34,7 +34,7 @@ Library required [Maps JavaScript API](https://console.cloud.google.com/apis/lib
 use Goldfinch\GoogleFields\Forms\MapField;
 
 private static $db = [
-  'Map' => 'Map',
+    'Map' => 'Map',
 ];
 
 // ..
@@ -44,14 +44,14 @@ MapField::create('Map')
 //
 
 MapField::create('Map', 'Map')
-  ->setSettings([
-      'lng' => 168.7439017,
-      'lat' => -45.0136784,
-      'zoom' => 10,
-  ])
-  ->mapHideSearch()
-  ->mapHideExtra()
-  ->mapReadonly()
+    ->setSettings([
+        'lng' => 168.7439017,
+        'lat' => -45.0136784,
+        'zoom' => 10,
+    ])
+    ->mapHideSearch()
+    ->mapHideExtra()
+    ->mapReadonly()
 ```
 ```html
 <!-- template.ss -->
@@ -74,7 +74,7 @@ Library required [Places API](https://console.cloud.google.com/apis/library/plac
 use Goldfinch\GoogleFields\Forms\PlaceField;
 
 private static $db = [
-  'Place' => 'Place',
+    'Place' => 'Place',
 ];
 
 // ...
@@ -84,10 +84,10 @@ PlaceField::create('Place')
 //
 
 PlaceField::create('Place', 'Place')
-  ->setSettings([
-    'country' => 'ru',
-  ])
-  ->placeHidePreview()
+    ->setSettings([
+      'country' => 'ru',
+    ])
+    ->placeHidePreview()
 ```
 ```html
 <!-- template.ss -->
