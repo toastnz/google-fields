@@ -21,7 +21,7 @@ class DBPlace extends DBComposite
      */
     private static $composite_db = [
         'Address' => 'Varchar(255)',
-        'Data' => JSONText::class
+        'Data' => JSONText::class,
     ];
 
     /**
@@ -34,7 +34,10 @@ class DBPlace extends DBComposite
         $latitude = $this->getLatitude();
         $longitude = $this->getLongitude();
 
-        return 'https://www.google.com/maps/search/?api=1&query=' . $latitude . ',' . $longitude;
+        return 'https://www.google.com/maps/search/?api=1&query=' .
+            $latitude .
+            ',' .
+            $longitude;
     }
 
     public function getParse($key = null)
@@ -42,7 +45,7 @@ class DBPlace extends DBComposite
         $data = $this->getData();
 
         if (!$data) {
-          return null;
+            return null;
         }
 
         $data = json_decode($data, true);
@@ -63,42 +66,28 @@ class DBPlace extends DBComposite
             'Latitude' => $data['geometry']['location']['lat'],
         ];
 
-        foreach ($data['address_components'] as $component)
-        {
-            if (in_array('subpremise', $component['types']))
-            {
+        foreach ($data['address_components'] as $component) {
+            if (in_array('subpremise', $component['types'])) {
                 $parse['Subpremise'] = $component['long_name'];
-            }
-            else if (in_array('street_number', $component['types']))
-            {
+            } elseif (in_array('street_number', $component['types'])) {
                 $parse['StreetNumber'] = $component['long_name'];
-            }
-            else if (in_array('route', $component['types']))
-            {
+            } elseif (in_array('route', $component['types'])) {
                 $parse['StreetName'] = $component['long_name'];
-            }
-            else if (in_array('locality', $component['types']))
-            {
+            } elseif (in_array('locality', $component['types'])) {
                 $parse['Suburb'] = $component['long_name'];
-            }
-            else if (in_array('sublocality', $component['types']))
-            {
+            } elseif (in_array('sublocality', $component['types'])) {
                 $parse['Subarea'] = $component['long_name'];
-            }
-            else if (in_array('administrative_area_level_1', $component['types']))
-            {
+            } elseif (
+                in_array('administrative_area_level_1', $component['types'])
+            ) {
                 $parse['Region'] = $component['long_name'];
-            }
-            else if (in_array('administrative_area_level_2', $component['types']))
-            {
+            } elseif (
+                in_array('administrative_area_level_2', $component['types'])
+            ) {
                 $parse['District'] = $component['long_name'];
-            }
-            else if (in_array('country', $component['types']))
-            {
+            } elseif (in_array('country', $component['types'])) {
                 $parse['Country'] = $component['long_name'];
-            }
-            else if (in_array('postal_code', $component['types']))
-            {
+            } elseif (in_array('postal_code', $component['types'])) {
                 $parse['Postcode'] = $component['long_name'];
             }
         }
@@ -219,7 +208,7 @@ class DBPlace extends DBComposite
     {
         // Retain nullability to mark this field as empty
         if (isset($data)) {
-            $data = (float)$data;
+            $data = (float) $data;
         }
         $this->setField('Data', $data, $markChanged);
         return $this;
@@ -241,7 +230,7 @@ class DBPlace extends DBComposite
     public function hasData()
     {
         $a = $this->getData();
-        return (!empty($a) && is_numeric($a));
+        return !empty($a) && is_numeric($a);
     }
 
     /**
@@ -275,6 +264,6 @@ class DBPlace extends DBComposite
     public function scaffoldFormField($title = null, $params = null)
     {
         return PlaceField::create($this->getName(), $title);
-            // ->setLocale($this->getLocale());
+        // ->setLocale($this->getLocale());
     }
 }

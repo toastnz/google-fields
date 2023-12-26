@@ -20,7 +20,7 @@ class DBMap extends DBComposite
     private static $composite_db = [
         'Longitude' => 'Varchar(32)',
         'Latitude' => 'Varchar(32)',
-        'Zoom' => 'Varchar(6)'
+        'Zoom' => 'Varchar(6)',
     ];
 
     /**
@@ -36,7 +36,10 @@ class DBMap extends DBComposite
         $latitude = $this->getLatitude();
         $longitude = $this->getLongitude();
 
-        return 'https://www.google.com/maps/search/?api=1&query=' . $latitude . ',' . $longitude;
+        return 'https://www.google.com/maps/search/?api=1&query=' .
+            $latitude .
+            ',' .
+            $longitude;
     }
 
     /**
@@ -100,7 +103,7 @@ class DBMap extends DBComposite
     {
         // Retain nullability to mark this field as empty
         if (isset($latitude)) {
-            $latitude = (float)$latitude;
+            $latitude = (float) $latitude;
         }
         $this->setField('Latitude', $latitude, $markChanged);
         return $this;
@@ -115,7 +118,7 @@ class DBMap extends DBComposite
     {
         // Retain nullability to mark this field as empty
         if (isset($zoom)) {
-            $zoom = (float)$zoom;
+            $zoom = (float) $zoom;
         }
         $this->setField('Zoom', $zoom, $markChanged);
         return $this;
@@ -137,7 +140,7 @@ class DBMap extends DBComposite
     public function hasLatitude()
     {
         $a = $this->getLatitude();
-        return (!empty($a) && is_numeric($a));
+        return !empty($a) && is_numeric($a);
     }
 
     /**
@@ -171,6 +174,6 @@ class DBMap extends DBComposite
     public function scaffoldFormField($title = null, $params = null)
     {
         return MapField::create($this->getName(), $title);
-            // ->setLocale($this->getLocale());
+        // ->setLocale($this->getLocale());
     }
 }

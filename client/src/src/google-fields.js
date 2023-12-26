@@ -1,46 +1,48 @@
-(function($) {
-
+(function ($) {
   window.googleFieldsInit = () => {
     // console.log('google init')
-  }
+  };
 
   function updateMapFields(map, latLng, latitude, longitude, zoomField) {
-    latitude.value = latLng.lat()
-    longitude.value = latLng.lng()
-    zoomField.value = map.getZoom()
+    latitude.value = latLng.lat();
+    longitude.value = latLng.lng();
+    zoomField.value = map.getZoom();
   }
 
   function findOnMap(map, marker, e, latitude, longitude, zoomField) {
+    const field = $(e.currentTarget);
+    const searchQuery = field.val();
 
-    let field = $(e.currentTarget)
-    var searchQuery = field.val()
-
-    if(searchQuery) {
-
-      geocoder = new google.maps.Geocoder()
+    if (searchQuery) {
+      geocoder = new google.maps.Geocoder();
       geocoder.geocode({ address: searchQuery }, (result, status) => {
-
         $(e).removeClass('ggp-place-found');
         $(e).removeClass('ggp-place-failed');
 
         if (google.maps.GeocoderStatus.OK === status) {
-          let location = result[0].geometry.location;
-          marker.setPosition(location)
+          const { location } = result[0].geometry;
+          marker.setPosition(location);
           map.panTo(location);
 
           $(e.currentTarget).addClass('ggp-place-found');
-          clearTimeout(window.placeFoundTimeout)
-          window.placeFoundTimeout = setTimeout(() => $(e.currentTarget).removeClass('ggp-place-found'), 1000);
+          clearTimeout(window.placeFoundTimeout);
+          window.placeFoundTimeout = setTimeout(
+            () => $(e.currentTarget).removeClass('ggp-place-found'),
+            1000,
+          );
 
-          updateMapFields(map, location, latitude, longitude, zoomField)
+          updateMapFields(map, location, latitude, longitude, zoomField);
         } else {
-          console.warn('Find a place: ' + searchQuery + ' not found')
+          console.warn(`Find a place: ${searchQuery} not found`);
 
           $(e.currentTarget).addClass('ggp-place-failed');
-          clearTimeout(window.placeFailedTimeout)
-          window.placeFailedTimeout = setTimeout(() => $(e.currentTarget).removeClass('ggp-place-failed'), 1000);
+          clearTimeout(window.placeFailedTimeout);
+          window.placeFailedTimeout = setTimeout(
+            () => $(e.currentTarget).removeClass('ggp-place-failed'),
+            1000,
+          );
         }
-      })
+      });
     }
 
     e.preventDefault();
@@ -48,62 +50,61 @@
   }
 
   function reloadPlaceData() {
-
     $('[data-goldfinch-google-place-field]').each((i, e) => {
-
-      let v = $(e).find('[data-goldfinch-place="data"]');
+      const v = $(e).find('[data-goldfinch-place="data"]');
 
       if (v.length && v.val()) {
-        let json = JSON.parse($(e).find('[data-goldfinch-place="data"]').val());
+        const json = JSON.parse(
+          $(e).find('[data-goldfinch-place="data"]').val(),
+        );
 
-        let preview = $(e).find('[data-goldfinch-place="preview"]');
+        const preview = $(e).find('[data-goldfinch-place="preview"]');
 
-        preview.addClass('ggp__preview--display')
+        preview.addClass('ggp__preview--display');
 
-        let content = $('<ul>');
+        const content = $('<ul>');
 
         json.address_components.forEach((i, k) => {
           let label = i.types.join();
 
           if (i.types.includes('subpremise')) {
-            label = 'Subpremise'
+            label = 'Subpremise';
           } else if (i.types.includes('street_number')) {
-            label = 'Street number'
+            label = 'Street number';
           } else if (i.types.includes('route')) {
-            label = 'Street name'
+            label = 'Street name';
           } else if (i.types.includes('locality')) {
-            label = 'Suburb'
+            label = 'Suburb';
           } else if (i.types.includes('sublocality')) {
-            label = 'Subarea'
+            label = 'Subarea';
           } else if (i.types.includes('administrative_area_level_1')) {
-            label = 'Region'
+            label = 'Region';
           } else if (i.types.includes('administrative_area_level_2')) {
-            label = 'District'
+            label = 'District';
           } else if (i.types.includes('country')) {
-            label = 'Country'
+            label = 'Country';
           } else if (i.types.includes('postal_code')) {
-            label = 'Postcode'
+            label = 'Postcode';
           }
 
-          content.append('<li><b>'+label+'</b>: '+i.long_name+'</li>')
-        })
+          content.append(`<li><b>${label}</b>: ${i.long_name}</li>`);
+        });
 
-        let location = json.geometry.location;
+        const { location } = json.geometry;
 
-        content.append('<li><b>Latitude</b>: '+location.lat+'</li>')
-        content.append('<li><b>Longitude</b>: '+location.lng+'</li>')
-        content.append('<li><a target="_blank" href="https://www.google.com/maps/search/?api=1&query='+location.lat+','+location.lng+'">Open Google Maps</a></li>')
+        content.append(`<li><b>Latitude</b>: ${location.lat}</li>`);
+        content.append(`<li><b>Longitude</b>: ${location.lng}</li>`);
+        content.append(
+          `<li><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=${location.lat},${location.lng}">Open Google Maps</a></li>`,
+        );
 
-        preview.html(content)
+        preview.html(content);
       }
-    })
-
+    });
   }
 
   $(document).ready(() => {
-
-    reloadPlaceData()
-
+    reloadPlaceData();
   });
 
   $('.cms-edit-form').entwine({
@@ -115,96 +116,92 @@
     },
     onaftersubmitform(event, data) {
       reloadPlaceData();
-    }
+    },
   });
 
-  $.entwine('ss', function($) {
-
+  $.entwine('ss', ($) => {
     $('[data-goldfinch-google-place-field]').entwine({
-          onmatch: function() {
+      onmatch() {
+        const address = $(this).find('[data-goldfinch-place="address"]')[0];
+        const data = $(this).find('[data-goldfinch-place="data"]')[0];
+        const settings = JSON.parse($(address).attr('data-settings'));
 
-            var address = $(this).find('[data-goldfinch-place="address"]')[0];
-            var data = $(this).find('[data-goldfinch-place="data"]')[0];
-            var settings = JSON.parse($(address).attr('data-settings'));
+        const options = {
+          componentRestrictions: { country: settings.country },
+          fields: ['address_components', 'geometry', 'name'],
+          strictBounds: false,
+        };
 
-            const options = {
-              componentRestrictions: { country: settings.country },
-              fields: ['address_components', 'geometry', 'name'],
-              strictBounds: false,
-            };
+        const autocomplete = new google.maps.places.Autocomplete(
+          address,
+          options,
+        );
 
-            const autocomplete = new google.maps.places.Autocomplete(address, options);
+        autocomplete.addListener('place_changed', () => {
+          const place = autocomplete.getPlace();
 
-            autocomplete.addListener('place_changed', () => {
+          data.value = JSON.stringify(place);
 
-                const place = autocomplete.getPlace();
+          reloadPlaceData();
+        });
+      },
+    });
+    $('[data-goldfinch-google-map-field]').entwine({
+      onmatch() {
+        const latitude = $(this).find('[data-goldfinch-map="latitude"]')[0];
+        const longitude = $(this).find('[data-goldfinch-map="longitude"]')[0];
+        const zoomField = $(this).find('[data-goldfinch-map="zoom"]')[0];
+        const frame = $(this).find('[data-goldfinch-map="frame"]')[0];
+        const search = $(this).find('[data-goldfinch-map="search"]')[0];
+        const settings = JSON.parse($(frame).attr('data-settings'));
 
-                data.value = JSON.stringify(place)
+        let lat = parseFloat(latitude.value);
+        let lng = parseFloat(longitude.value);
+        let zoom = parseFloat(zoomField.value);
 
-                reloadPlaceData()
-            });
+        // defaults
+        if (!zoom) zoom = settings.zoom;
+        if (!lat) lat = settings.lat;
+        if (!lng) lng = settings.lng;
 
-          }
-      });
-      $('[data-goldfinch-google-map-field]').entwine({
-        onmatch: function() {
+        const map = new google.maps.Map(frame, {
+          center: { lat, lng },
+          zoom,
+          gestureHandling: 'cooperative',
+          fullscreenControl: false,
+          mapTypeControl: false,
+          clickableIcons: false,
+          rotateControl: false,
+          scaleControl: false,
+          streetViewControl: false,
+          zoomControl: false,
+        });
 
-          var latitude = $(this).find('[data-goldfinch-map="latitude"]')[0];
-          var longitude = $(this).find('[data-goldfinch-map="longitude"]')[0];
-          var zoomField = $(this).find('[data-goldfinch-map="zoom"]')[0];
-          var frame = $(this).find('[data-goldfinch-map="frame"]')[0];
-          var search = $(this).find('[data-goldfinch-map="search"]')[0];
-          var settings = JSON.parse($(frame).attr('data-settings'));
+        const marker = new google.maps.Marker({
+          position: { lat, lng },
+          map,
+        });
 
-          let lat = parseFloat(latitude.value);
-          let lng = parseFloat(longitude.value);
-          let zoom = parseFloat(zoomField.value);
+        google.maps.event.addListener(map, 'zoom_changed', (event) => {
+          zoomField.value = map.getZoom();
+        });
 
-           // defaults
-          if (!zoom) zoom = settings.zoom
-          if (!lat) lat = settings.lat
-          if (!lng) lng = settings.lng
+        google.maps.event.addListener(map, 'click', (event) => {
+          marker.setPosition(event.latLng);
+          map.panTo(event.latLng);
 
-          let map = new google.maps.Map(frame, {
-            center: { lat: lat, lng: lng },
-            zoom: zoom,
-            gestureHandling: "cooperative",
-            fullscreenControl: false,
-            mapTypeControl: false,
-            clickableIcons: false,
-            rotateControl: false,
-            scaleControl: false,
-            streetViewControl: false,
-            zoomControl: false,
-          });
+          updateMapFields(map, event.latLng, latitude, longitude, zoomField);
+        });
 
-          var marker = new google.maps.Marker({
-            position: { lat: lat, lng: lng },
-            map: map
-          });
-
-          google.maps.event.addListener(map, 'zoom_changed', (event) => {
-            zoomField.value = map.getZoom()
-          });
-
-          google.maps.event.addListener(map, 'click', (event) => {
-            marker.setPosition(event.latLng)
-            map.panTo(event.latLng);
-
-            updateMapFields(map, event.latLng, latitude, longitude, zoomField)
-          });
-
-          $(search).on({
-            'change': search,
-            'keydown': (e) => {
-
-              if (e.which == 13) {
-                findOnMap(map, marker, e, latitude, longitude, zoomField)
-              }
+        $(search).on({
+          change: search,
+          keydown: (e) => {
+            if (e.which == 13) {
+              findOnMap(map, marker, e, latitude, longitude, zoomField);
             }
-          })
-
-        }
+          },
+        });
+      },
     });
   });
-}(jQuery));
+})(jQuery);

@@ -17,9 +17,9 @@ class MapField extends FormField
     protected $schemaDataType = 'MapField';
 
     protected $settings = [
-      'zoom' => 2,
-      'lat' => 9.058948064030377,
-      'lng' => 82.47341002295963,
+        'zoom' => 2,
+        'lat' => 9.058948064030377,
+        'lng' => 82.47341002295963,
     ];
 
     /**
@@ -64,12 +64,20 @@ class MapField extends FormField
 
     public function getMapField()
     {
-        return LiteralField::create($this->getName() . 'Map', '<div class="ggm__frame" data-goldfinch-map="frame" data-settings="'.str_replace('"','&quot;', json_encode($this->getSettings())).'"></div>');
+        return LiteralField::create(
+            $this->getName() . 'Map',
+            '<div class="ggm__frame" data-goldfinch-map="frame" data-settings="' .
+                str_replace('"', '&quot;', json_encode($this->getSettings())) .
+                '"></div>',
+        );
     }
 
     public function getSearchField()
     {
-        return TextField::create($this->getName() . 'Search', '')->setAttribute('placeholder', 'Find a place (type and hit enter)')->setAttribute('data-goldfinch-map', 'search')->addExtraClass('ggm__search');
+        return TextField::create($this->getName() . 'Search', '')
+            ->setAttribute('placeholder', 'Find a place (type and hit enter)')
+            ->setAttribute('data-goldfinch-map', 'search')
+            ->addExtraClass('ggm__search');
     }
 
     public function setSettings($settings)
@@ -84,25 +92,35 @@ class MapField extends FormField
         return $this->settings;
     }
 
-    public function __construct($name, $title = null, $value = "")
+    public function __construct($name, $title = null, $value = '')
     {
         $this->setName($name);
 
-        $this->fieldLatitude = TextField::create("{$name}[Latitude]", "Latitude");
+        $this->fieldLatitude = TextField::create(
+            "{$name}[Latitude]",
+            'Latitude',
+        );
 
         $this->fieldLatitude->setAttribute('data-goldfinch-map', 'latitude');
 
-        $this->fieldZoom = TextField::create("{$name}[Zoom]", "Zoom");
+        $this->fieldZoom = TextField::create("{$name}[Zoom]", 'Zoom');
 
         $this->fieldZoom->setAttribute('data-goldfinch-map', 'zoom');
 
         $this->buildLongitudeField();
 
-        Requirements::css('goldfinch/google-fields:client/dist/google-fields-style.css');
-        Requirements::javascript('goldfinch/google-fields:client/dist/google-fields.js');
-        Requirements::javascript('//maps.googleapis.com/maps/api/js?key=' . Environment::getEnv('APP_GOOGLE_MAPS_KEY') . '&callback=googleFieldsInit&libraries=places&v=weekly');
+        Requirements::css(
+            'goldfinch/google-fields:client/dist/google-fields-style.css',
+        );
+        Requirements::javascript(
+            'goldfinch/google-fields:client/dist/google-fields.js',
+        );
+        Requirements::javascript(
+            '//maps.googleapis.com/maps/api/js?key=' .
+                Environment::getEnv('APP_GOOGLE_MAPS_KEY') .
+                '&callback=googleFieldsInit&libraries=places&v=weekly',
+        );
         // Requirements::javascript('//maps.googleapis.com/maps/api/js?key=' . Environment::getEnv('APP_GOOGLE_MAPS_KEY') . '&callback=googleFieldsInit&v=weekly'); // without places library
-
 
         parent::__construct($name, $title, $value);
     }
@@ -123,9 +141,11 @@ class MapField extends FormField
     {
         $name = $this->getName();
 
-        $longitudeValue = $this->fieldLongitude ? $this->fieldLongitude->dataValue() : null;
+        $longitudeValue = $this->fieldLongitude
+            ? $this->fieldLongitude->dataValue()
+            : null;
 
-        $field = TextField::create("{$name}[Longitude]", "Longitude");
+        $field = TextField::create("{$name}[Longitude]", 'Longitude');
 
         $field->setReadonly($this->isReadonly());
         $field->setDisabled($this->isDisabled());
@@ -151,7 +171,7 @@ class MapField extends FormField
 
         // Handle submitted array value
         if (!is_array($value)) {
-            throw new InvalidArgumentException("Value is not submitted array");
+            throw new InvalidArgumentException('Value is not submitted array');
         }
 
         // Update each field
@@ -181,7 +201,7 @@ class MapField extends FormField
                 'Zoom' => $value->getZoom(),
             ];
         } elseif (!is_array($value)) {
-            throw new InvalidArgumentException("Invalid longitude format");
+            throw new InvalidArgumentException('Invalid longitude format');
         }
 
         // Save value
@@ -202,7 +222,7 @@ class MapField extends FormField
         return DBMap::create_field('Map', [
             'Longitude' => $this->fieldLongitude->dataValue(),
             'Latitude' => $this->fieldLatitude->dataValue(),
-            'Zoom' => $this->fieldZoom->dataValue()
+            'Zoom' => $this->fieldZoom->dataValue(),
         ]);
     }
 
@@ -260,9 +280,18 @@ class MapField extends FormField
 
     public function mapReadonly()
     {
-        $this->fieldLatitude->addExtraClass('readonly')->setAttribute('tabindex', '-1')->setAttribute('id', '__readonly__');
-        $this->fieldLongitude->addExtraClass('readonly')->setAttribute('tabindex', '-1')->setAttribute('id', '__readonly__');
-        $this->fieldZoom->addExtraClass('readonly')->setAttribute('tabindex', '-1')->setAttribute('id', '__readonly__');
+        $this->fieldLatitude
+            ->addExtraClass('readonly')
+            ->setAttribute('tabindex', '-1')
+            ->setAttribute('id', '__readonly__');
+        $this->fieldLongitude
+            ->addExtraClass('readonly')
+            ->setAttribute('tabindex', '-1')
+            ->setAttribute('id', '__readonly__');
+        $this->fieldZoom
+            ->addExtraClass('readonly')
+            ->setAttribute('tabindex', '-1')
+            ->setAttribute('id', '__readonly__');
 
         return $this;
     }

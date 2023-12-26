@@ -18,7 +18,7 @@ class PlaceField extends FormField
     protected $schemaDataType = 'PlaceField';
 
     protected $settings = [
-      'country' => 'nz',
+        'country' => 'nz',
     ];
 
     /**
@@ -53,9 +53,11 @@ class PlaceField extends FormField
 
     public function getPreviewField()
     {
-        return LiteralField::create($this->getName() . 'Map', '<div class="ggp__preview" data-goldfinch-place="preview"></div>');
+        return LiteralField::create(
+            $this->getName() . 'Map',
+            '<div class="ggp__preview" data-goldfinch-place="preview"></div>',
+        );
     }
-
 
     public function setSettings($settings)
     {
@@ -69,18 +71,26 @@ class PlaceField extends FormField
         return $this->settings;
     }
 
-    public function __construct($name, $title = null, $value = "")
+    public function __construct($name, $title = null, $value = '')
     {
         $this->setName($name);
-        $this->fieldData = HiddenField::create("{$name}[Data]", "Data");
+        $this->fieldData = HiddenField::create("{$name}[Data]", 'Data');
 
         $this->fieldData->setAttribute('data-goldfinch-place', 'data');
 
         $this->buildAddressField();
 
-        Requirements::css('goldfinch/google-fields:client/dist/google-fields-style.css');
-        Requirements::javascript('goldfinch/google-fields:client/dist/google-fields.js');
-        Requirements::javascript('//maps.googleapis.com/maps/api/js?key=' . Environment::getEnv('APP_GOOGLE_MAPS_KEY') . '&callback=googleFieldsInit&libraries=places&v=weekly');
+        Requirements::css(
+            'goldfinch/google-fields:client/dist/google-fields-style.css',
+        );
+        Requirements::javascript(
+            'goldfinch/google-fields:client/dist/google-fields.js',
+        );
+        Requirements::javascript(
+            '//maps.googleapis.com/maps/api/js?key=' .
+                Environment::getEnv('APP_GOOGLE_MAPS_KEY') .
+                '&callback=googleFieldsInit&libraries=places&v=weekly',
+        );
 
         parent::__construct($name, $title, $value);
     }
@@ -100,9 +110,11 @@ class PlaceField extends FormField
     {
         $name = $this->getName();
 
-        $addressValue = $this->fieldAddress ? $this->fieldAddress->dataValue() : null;
+        $addressValue = $this->fieldAddress
+            ? $this->fieldAddress->dataValue()
+            : null;
 
-        $field = TextField::create("{$name}[Address]", "Address");
+        $field = TextField::create("{$name}[Address]", 'Address');
 
         $field->setReadonly($this->isReadonly());
         $field->setDisabled($this->isDisabled());
@@ -127,7 +139,7 @@ class PlaceField extends FormField
 
         // Handle submitted array value
         if (!is_array($value)) {
-            throw new InvalidArgumentException("Value is not submitted array");
+            throw new InvalidArgumentException('Value is not submitted array');
         }
 
         // Update each field
@@ -154,7 +166,7 @@ class PlaceField extends FormField
                 'Data' => $value->getData(),
             ];
         } elseif (!is_array($value)) {
-            throw new InvalidArgumentException("Invalid address format");
+            throw new InvalidArgumentException('Invalid address format');
         }
 
         // Save value
@@ -162,7 +174,10 @@ class PlaceField extends FormField
         $this->fieldData->setValue($value['Data'], $value);
         $this->value = $this->dataValue();
 
-        $this->fieldAddress->setAttribute('data-settings', json_encode($this->getSettings()));
+        $this->fieldAddress->setAttribute(
+            'data-settings',
+            json_encode($this->getSettings()),
+        );
 
         return $this;
     }
@@ -176,7 +191,7 @@ class PlaceField extends FormField
     {
         return DBPlace::create_field('Place', [
             'Address' => $this->fieldAddress->dataValue(),
-            'Data' => $this->fieldData->dataValue()
+            'Data' => $this->fieldData->dataValue(),
         ]);
     }
 
@@ -206,12 +221,12 @@ class PlaceField extends FormField
 
             $dataObject->$addressField = $this->fieldAddress->dataValue();
 
-            if ($dataObject->$addressField && $dataObject->$addressField != '')
-            {
+            if (
+                $dataObject->$addressField &&
+                $dataObject->$addressField != ''
+            ) {
                 $dataObject->$dataField = $this->fieldData->dataValue();
-            }
-            else
-            {
+            } else {
                 $dataObject->$dataField = null;
             }
         }
