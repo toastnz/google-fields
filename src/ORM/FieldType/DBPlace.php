@@ -2,9 +2,6 @@
 
 namespace Goldfinch\GoogleFields\ORM\FieldType;
 
-use SilverStripe\i18n\i18n;
-use SilverStripe\View\ArrayData;
-use SilverStripe\Forms\FormField;
 use PhpTek\JSONText\ORM\FieldType\JSONText;
 use SilverStripe\ORM\FieldType\DBComposite;
 use Goldfinch\GoogleFields\Forms\PlaceField;

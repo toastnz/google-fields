@@ -3,7 +3,6 @@
 namespace Goldfinch\GoogleFields\Forms;
 
 use InvalidArgumentException;
-use SilverStripe\ORM\ArrayLib;
 use SilverStripe\Forms\FormField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Core\Environment;

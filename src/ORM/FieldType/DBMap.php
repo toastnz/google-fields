@@ -3,7 +3,6 @@
 namespace Goldfinch\GoogleFields\ORM\FieldType;
 
 use SilverStripe\i18n\i18n;
-use SilverStripe\Forms\FormField;
 use Goldfinch\GoogleFields\Forms\MapField;
 use SilverStripe\ORM\FieldType\DBComposite;
 
