@@ -7,7 +7,6 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
   // const cfg = initCfg(command, mode, ssrBuild);
 
   return {
-
     resolve: {
       alias: {},
     },
