@@ -10,7 +10,7 @@ Google Map and Google Place (Autocomplete) fields for Silverstripe
 
 ## Install
 
-```
+```bash
 composer require goldfinch/google-fields
 ```
 
