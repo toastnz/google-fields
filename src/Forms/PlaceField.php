@@ -169,8 +169,8 @@ class PlaceField extends FormField
         }
 
         // Save value
-        $this->fieldAddress->setValue($value['Address'], $value);
-        $this->fieldData->setValue($value['Data'], $value);
+        $this->fieldAddress->setValue($value['Address']);
+        $this->fieldData->setValue($value['Data']);
         $this->value = $this->dataValue();
 
         $this->fieldAddress->setAttribute(
