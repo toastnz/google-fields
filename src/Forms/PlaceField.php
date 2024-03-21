@@ -9,6 +9,7 @@ use SilverStripe\Core\Environment;
 use SilverStripe\Forms\HiddenField;
 use SilverStripe\View\Requirements;
 use SilverStripe\Forms\LiteralField;
+use SilverStripe\SiteConfig\SiteConfig;
 use SilverStripe\ORM\DataObjectInterface;
 use Goldfinch\GoogleFields\ORM\FieldType\DBPlace;
 
@@ -85,9 +86,21 @@ class PlaceField extends FormField
         Requirements::javascript(
             'goldfinch/google-fields:client/dist/google-fields.js',
         );
+
+        if (Environment::hasEnv('APP_GOOGLE_MAPS_KEY')) {
+            $key = Environment::getEnv('APP_GOOGLE_MAPS_KEY');
+        } else {
+            $cfg = SiteConfig::current_site_config();
+            if ($cfg->GoogleCloud && $cfg->GoogleCloudAPIKey) {
+                $key = $cfg->GoogleCloudAPIKey;
+            } else {
+                $key = '';
+            }
+        }
+
         Requirements::javascript(
             '//maps.googleapis.com/maps/api/js?key=' .
-                Environment::getEnv('APP_GOOGLE_MAPS_KEY') .
+                $key .
                 '&callback=googleFieldsInit&libraries=places&v=weekly',
         );
 
