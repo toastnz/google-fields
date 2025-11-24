@@ -333,16 +333,6 @@ class MapField extends FormField
         return $this;
     }
 
-    /**
-     * Validate this field
-     *
-     * @param Validator $validator
-     * @return bool
-     */
-    public function validate($validator)
-    {
-        // return $this->extendValidationResult($result, $validator);
-    }
 
     public function setForm($form)
     {
