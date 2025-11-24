@@ -2,6 +2,7 @@
 
 namespace Goldfinch\GoogleFields\ORM\FieldType;
 
+use SilverStripe\Forms\FormField;
 use PhpTek\JSONText\ORM\FieldType\JSONText;
 use SilverStripe\ORM\FieldType\DBComposite;
 use Goldfinch\GoogleFields\Forms\PlaceField;
@@ -156,7 +157,7 @@ class DBPlace extends DBComposite
      *
      * @return string
      */
-    public function getValue()
+    public function getValue(): mixed
     {
         if (!$this->exists()) {
             return null;
@@ -214,7 +215,7 @@ class DBPlace extends DBComposite
     /**
      * @return boolean
      */
-    public function exists()
+    public function exists(): bool
     {
         return is_numeric($this->getData());
     }
@@ -258,7 +259,7 @@ class DBPlace extends DBComposite
      * @param array $params
      * @return FormField
      */
-    public function scaffoldFormField($title = null, $params = null)
+    public function scaffoldFormField(?string $title = null, array $params = []): ?FormField
     {
         return PlaceField::create($this->getName(), $title);
         // ->setLocale($this->getLocale());

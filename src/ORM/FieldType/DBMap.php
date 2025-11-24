@@ -3,6 +3,7 @@
 namespace Goldfinch\GoogleFields\ORM\FieldType;
 
 use SilverStripe\i18n\i18n;
+use SilverStripe\Forms\FormField;
 use Goldfinch\GoogleFields\Forms\MapField;
 use SilverStripe\ORM\FieldType\DBComposite;
 
@@ -45,7 +46,7 @@ class DBMap extends DBComposite
      *
      * @return string
      */
-    public function getValue()
+    public function getValue(): mixed
     {
         if (!$this->exists()) {
             return null;
@@ -126,7 +127,7 @@ class DBMap extends DBComposite
     /**
      * @return boolean
      */
-    public function exists()
+    public function exists(): bool
     {
         return is_numeric($this->getLatitude());
     }
@@ -170,7 +171,7 @@ class DBMap extends DBComposite
      * @param array $params
      * @return FormField
      */
-    public function scaffoldFormField($title = null, $params = null)
+    public function scaffoldFormField(?string $title = null, array $params = []): ?FormField
     {
         return MapField::create($this->getName(), $title);
         // ->setLocale($this->getLocale());
